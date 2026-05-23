@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>my Oncall Diaries — luhurfatah</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Prism Syntax Highlighting Themes -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-vsc-dark-plus.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Reading Progress Bar -->
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- Sidebar Panel -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo" id="logo-btn" style="cursor: pointer;" title="Go to Dashboard">
+          <i class="fa-solid fa-book-open"></i>
+          <span>my Oncall Diaries</span>
+        </div>
+        <button id="sidebar-toggle" class="btn-icon" title="Toggle Sidebar">
+          <i class="fa-solid fa-angles-left"></i>
+        </button>
+      </div>
+
+      <!-- Search Box -->
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="search-input" placeholder="Search files & topics...">
+        <button id="search-clear" class="btn-icon hidden" title="Clear Search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- File Tree Navigation -->
+      <nav class="file-tree" id="file-tree">
+        <!-- Dynanically populated -->
+        <div class="loading-spinner">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Loading index...
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="user-info">
+          <i class="fa-solid fa-user-gear"></i> Luhur
+        </span>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      <header class="content-header">
+        <button id="menu-toggle" class="btn-icon" title="Open Navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="breadcrumbs" id="breadcrumbs">
+          <span>Dashboard</span>
+        </div>
+
+        <div class="header-actions">
+          <button id="theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Reading Area -->
+      <article class="content-body">
+
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="welcome-container">
+          <div class="welcome-card">
+            <h1>Welcome to my Oncall Diaries</h1>
+            <p>Documenting everything so future me stops asking ChatGPT the same question twice. Some engineers learn from mistakes — I learn from my browser history.</p>
+            <p>Too many AI conversations. A relentless curiosity about cloud and DevOps. This blog is what happens when you finally write it all down instead of losing it in a chat window.</p>
+            <div class="shortcuts-guide">
+              <h3>Quick Features</h3>
+              <ul>
+                <li><i class="fa-solid fa-code text-primary"></i> Full code highlighting (HCL, YAML, Bash, Dockerfile)
+                </li>
+                <li><i class="fa-solid fa-copy text-primary"></i> One-click code copying to clipboard</li>
+                <li><i class="fa-solid fa-magnifying-glass text-primary"></i> Fast instant filtering and search index
+                </li>
+                <li><i class="fa-solid fa-list-check text-primary"></i> Dynamic progress tracking</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Render Target -->
+        <div id="markdown-container" class="markdown-body hidden"></div>
+
+        <!-- Document Navigation Footer -->
+        <div class="doc-navigation hidden" id="doc-navigation">
+          <button id="prev-doc-btn" class="nav-btn">
+            <i class="fa-solid fa-arrow-left"></i>
+            <div class="nav-btn-info">
+              <span class="nav-label">Previous</span>
+              <span class="nav-title" id="prev-doc-title">Document Name</span>
+            </div>
+          </button>
+
+          <button id="next-doc-btn" class="nav-btn">
+            <div class="nav-btn-info">
+              <span class="nav-label">Next</span>
+              <span class="nav-title" id="next-doc-title">Document Name</span>
+            </div>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <!-- CDN scripts -->
+  <!-- Marked.js for MD rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Prism.js for Syntax Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <!-- Load specific language plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-docker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-hcl.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="app.js"></script>
+</body>
+
+</html>
