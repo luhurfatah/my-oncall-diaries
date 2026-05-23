@@ -5,101 +5,96 @@
     "path": "01-Knowledge-Base",
     "children": [
       {
-        "name": "cicd",
+        "name": "CI-CD",
         "type": "directory",
-        "path": "01-Knowledge-Base/cicd",
+        "path": "01-Knowledge-Base/CI-CD",
         "children": [
           {
-            "name": "00-index.md",
+            "name": "00-Index.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/00-index.md"
+            "path": "01-Knowledge-Base/CI-CD/00-Index.md"
           },
           {
-            "name": "01-paradigms-concepts.md",
+            "name": "01-Paradigms-and-Concepts.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/01-paradigms-concepts.md"
+            "path": "01-Knowledge-Base/CI-CD/01-Paradigms-and-Concepts.md"
           },
           {
-            "name": "02-best-practices.md",
+            "name": "02-Best-Practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/02-best-practices.md"
+            "path": "01-Knowledge-Base/CI-CD/02-Best-Practices.md"
           },
           {
-            "name": "03-build-once-deploy-many.md",
+            "name": "03-Build-Once-Deploy-Many.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/03-build-once-deploy-many.md"
+            "path": "01-Knowledge-Base/CI-CD/03-Build-Once-Deploy-Many.md"
           },
           {
-            "name": "04-pipeline-optimization.md",
+            "name": "04-Pipeline-Optimization.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/04-pipeline-optimization.md"
+            "path": "01-Knowledge-Base/CI-CD/04-Pipeline-Optimization.md"
           },
           {
-            "name": "05-github-actions-pattern.md",
+            "name": "05-GitHub-Actions-Pattern.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/05-github-actions-pattern.md"
+            "path": "01-Knowledge-Base/CI-CD/05-GitHub-Actions-Pattern.md"
           },
           {
-            "name": "06-blue-green.md",
+            "name": "06-Blue-Green-Deployment.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/06-blue-green.md"
+            "path": "01-Knowledge-Base/CI-CD/06-Blue-Green-Deployment.md"
           },
           {
-            "name": "07-gitops.md",
+            "name": "07-GitOps-Best-Practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/07-gitops.md"
+            "path": "01-Knowledge-Base/CI-CD/07-GitOps-Best-Practices.md"
           },
           {
-            "name": "08-argocd.md",
+            "name": "08-ArgoCD-Deep-Dive.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/08-argocd.md"
+            "path": "01-Knowledge-Base/CI-CD/08-ArgoCD-Deep-Dive.md"
           },
           {
-            "name": "09-flux.md",
+            "name": "09-Flux-CD-Deep-Dive.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/09-flux.md"
+            "path": "01-Knowledge-Base/CI-CD/09-Flux-CD-Deep-Dive.md"
           },
           {
-            "name": "99-reference.md",
+            "name": "99-References.md",
             "type": "file",
-            "path": "01-Knowledge-Base/cicd/99-reference.md"
+            "path": "01-Knowledge-Base/CI-CD/99-References.md"
           }
         ]
       },
       {
-        "name": "iaac",
+        "name": "IaC",
         "type": "directory",
-        "path": "01-Knowledge-Base/iaac",
+        "path": "01-Knowledge-Base/IaC",
         "children": [
           {
-            "name": "00-index.md",
+            "name": "00-Index.md",
             "type": "file",
-            "path": "01-Knowledge-Base/iaac/00-index.md"
+            "path": "01-Knowledge-Base/IaC/00-Index.md"
           },
           {
-            "name": "best-practices.md",
+            "name": "01-Paradigms-and-Concepts.md",
             "type": "file",
-            "path": "01-Knowledge-Base/iaac/best-practices.md"
+            "path": "01-Knowledge-Base/IaC/01-Paradigms-and-Concepts.md"
           },
           {
-            "name": "iac.md",
+            "name": "02-Best-Practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/iaac/iac.md"
+            "path": "01-Knowledge-Base/IaC/02-Best-Practices.md"
           },
           {
-            "name": "paradigms-concepts.md",
+            "name": "03-Terragrunt-Guide.md",
             "type": "file",
-            "path": "01-Knowledge-Base/iaac/paradigms-concepts.md"
+            "path": "01-Knowledge-Base/IaC/03-Terragrunt-Guide.md"
           },
           {
-            "name": "pre-commit.md",
+            "name": "04-Pre-commit-and-Validation.md",
             "type": "file",
-            "path": "01-Knowledge-Base/iaac/pre-commit.md"
-          },
-          {
-            "name": "terragrunt.md",
-            "type": "file",
-            "path": "01-Knowledge-Base/iaac/terragrunt.md"
+            "path": "01-Knowledge-Base/IaC/04-Pre-commit-and-Validation.md"
           }
         ]
       },
@@ -122,11 +117,6 @@
         "name": "k8s.md",
         "type": "file",
         "path": "01-Knowledge-Base/k8s.md"
-      },
-      {
-        "name": "precommit.md",
-        "type": "file",
-        "path": "01-Knowledge-Base/precommit.md"
       }
     ]
   },

@@ -3,6 +3,16 @@ let fileTreeData = [];
 let flatFilesList = [];
 let currentFileIndex = -1;
 let currentActivePath = '';
+let currentFontSize = 1.2;
+let isWideMode = false;
+
+function applyWidthMode(overrideWide) {
+  if (overrideWide || isWideMode) {
+    document.documentElement.style.setProperty('--reading-max-width', '1200px');
+  } else {
+    document.documentElement.style.setProperty('--reading-max-width', '740px');
+  }
+}
 
 // DOM Elements
 const elements = {
@@ -23,7 +33,10 @@ const elements = {
   prevDocBtn: document.getElementById('prev-doc-btn'),
   prevDocTitle: document.getElementById('prev-doc-title'),
   nextDocBtn: document.getElementById('next-doc-btn'),
-  nextDocTitle: document.getElementById('next-doc-title')
+  nextDocTitle: document.getElementById('next-doc-title'),
+  fontDecrease: document.getElementById('font-decrease'),
+  fontIncrease: document.getElementById('font-increase'),
+  widthToggle: document.getElementById('width-toggle')
 };
 
 // Initial Setup
@@ -63,6 +76,21 @@ function setupEventListeners() {
     } else {
       icon.className = 'fa-solid fa-moon';
     }
+  });
+
+  elements.fontDecrease.addEventListener('click', () => {
+    currentFontSize = Math.max(0.8, currentFontSize - 0.1);
+    document.documentElement.style.setProperty('--dynamic-font-size', `${currentFontSize}rem`);
+  });
+
+  elements.fontIncrease.addEventListener('click', () => {
+    currentFontSize = Math.min(2.5, currentFontSize + 0.1);
+    document.documentElement.style.setProperty('--dynamic-font-size', `${currentFontSize}rem`);
+  });
+
+  elements.widthToggle.addEventListener('click', () => {
+    isWideMode = !isWideMode;
+    applyWidthMode();
   });
 
   // Search Filter
@@ -255,6 +283,13 @@ async function loadDocument(node) {
     currentActivePath = node.path;
     updateSidebarActiveState();
     
+    // Auto-wide mode for CV
+    if (node.path.toLowerCase().includes('cv')) {
+      applyWidthMode(true);
+    } else {
+      applyWidthMode(false);
+    }
+    
     const response = await fetch(`content/${node.path}`);
     if (!response.ok) throw new Error('Failed to fetch file content');
     const markdown = await response.text();
@@ -262,6 +297,12 @@ async function loadDocument(node) {
     // Parse Markdown to HTML
     let htmlContent = marked.parse(markdown);
     elements.markdownContainer.innerHTML = htmlContent;
+    // Apply CV styling if the document is from the CV folder
+    if (node.path.toLowerCase().includes('99-cv') || node.path.toLowerCase().includes('cv')) {
+      elements.markdownContainer.classList.add('cv');
+    } else {
+      elements.markdownContainer.classList.remove('cv');
+    }
     
     // Set breadcrumbs
     updateBreadcrumbs(node.path);
@@ -269,6 +310,9 @@ async function loadDocument(node) {
     // Highlight Code blocks and insert custom copy buttons
     processCodeBlocks();
     Prism.highlightAll();
+    
+    // Intercept internal markdown links
+    interceptMarkdownLinks(node.path);
     
     // Update Navigation links (Previous/Next)
     updateDocNavigation(node);
@@ -434,4 +478,40 @@ function filterTree(nodes, query) {
   });
   
   return result;
+}
+
+// Intercept internal markdown links to prevent page reload
+function interceptMarkdownLinks(currentPath) {
+  const links = elements.markdownContainer.querySelectorAll('a');
+  links.forEach(link => {
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('http') || href.startsWith('#')) {
+      if (href && href.startsWith('http')) {
+        link.setAttribute('target', '_blank'); // Open external links in new tab
+      }
+      return;
+    }
+    
+    // Only intercept links to other markdown files
+    if (href.endsWith('.md')) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        try {
+          // Resolve relative path using the URL API (dummy base needed for relative resolution)
+          const base = new URL(`http://dummy.com/${currentPath}`);
+          const resolvedPath = new URL(href, base).pathname.substring(1);
+          
+          // Find target file in flatFilesList
+          const targetNode = flatFilesList.find(f => f.path === resolvedPath);
+          if (targetNode) {
+            loadDocument(targetNode);
+          } else {
+            console.warn('Link target not found in file tree:', resolvedPath);
+          }
+        } catch (err) {
+          console.error('Error resolving link:', err);
+        }
+      });
+    }
+  });
 }

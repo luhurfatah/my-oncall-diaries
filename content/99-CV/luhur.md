@@ -29,7 +29,7 @@
 - Led a POC for Infrastructure as Code (IaC) adoption, designing and implementing a scalable approach to import a complex multi-account environment into reusable, standardized Terraform and Terragrunt modules.
 - Maintained 99%+ availability across 300+ AWS Linux and Windows servers, managing the full infrastructure lifecycle
 (provisioning, patching, hardening, decommissioning) in a production-grade environment.
-Delivered operational support via ServiceNow (incident, request, change, problem), including P1 response, on-call
+- Delivered operational support via ServiceNow (incident, request, change, problem), including P1 response, on-call
 rotation, and RCA documentation.
 - Remediated CSPM security findings (Prisma Cloud, AWS Security Hub) aligned with CIS benchmarks, closing
 compliance gaps across multi-account environments without disrupting live operations.

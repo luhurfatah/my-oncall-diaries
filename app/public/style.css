@@ -377,55 +377,156 @@ body {
   color: var(--text-main);
 }
 
-.welcome-card p {
+.welcome-card .intro-lead {
+  color: var(--text-main);
+  font-family: var(--font-reading);
+  font-size: 1.35rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  font-weight: 400;
+}
+
+.welcome-card .intro-sub {
   color: var(--text-muted);
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   line-height: 1.7;
   margin-bottom: 2.5rem;
 }
 
-.shortcuts-guide {
+.features-section {
   border-top: 1px solid var(--border-color);
   padding-top: 2rem;
+  margin-top: 0.5rem;
 }
 
-.shortcuts-guide h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1.25rem;
+.features-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
+  margin-bottom: 1.25rem;
 }
 
-.shortcuts-guide ul {
-  list-style: none;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.875rem;
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.shortcuts-guide li {
+.feature-card {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 99px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.feature-card:hover {
+  border-color: var(--accent);
+  background-color: var(--accent-glow);
+}
+
+.feature-icon {
+  color: var(--accent);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.feature-card strong {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
 }
 
 .text-primary { color: var(--accent); }
+
+/* ─── AI Disclaimer Callout ─────────────────────────────────────────── */
+.ai-disclaimer {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-hover) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-disclaimer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 3px 0 0 3px;
+}
+
+.ai-disclaimer-icon {
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.ai-disclaimer p {
+  font-family: var(--font-reading);
+  font-size: 0.975rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+  font-style: italic;
+}
+
+.ai-disclaimer-sub {
+  font-family: var(--font-interface) !important;
+  font-size: 0.8rem !important;
+  font-style: normal !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent) !important;
+  opacity: 0.7;
+  margin-top: 0.25rem !important;
+}
 
 /* ─── Markdown Body (Medium-style reading) ─────────────────────────── */
 .markdown-body {
   max-width: var(--reading-max-width);
   width: 100%;
   font-family: var(--font-reading);
-  font-size: 1.2rem;
+  font-size: var(--dynamic-font-size, 1.2rem);
   line-height: 1.85;
   color: var(--text-main);
   letter-spacing: -0.003em;
   animation: fadeIn 0.3s ease-out;
 }
+
+/* CV specific styling */
+.markdown-body.cv {
+  max-width: 1000px;
+  font-family: var(--font-reading);
+  font-size: 1.15rem;
+  line-height: 2;
+  background-color: var(--bg-main);
+  padding: 2rem;
+}
+
+.markdown-body.cv h1,
+.markdown-body.cv h2,
+.markdown-body.cv h3 {
+  font-family: var(--font-reading);
+  color: var(--text-main);
+}
+
+.markdown-body.cv h1 { font-size: 2.5rem; }
+.markdown-body.cv h2 { font-size: 1.8rem; }
+.markdown-body.cv h3 { font-size: 1.5rem; }
 
 /* Headers — back to sans-serif for clear hierarchy */
 .markdown-body h1 {
