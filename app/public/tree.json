@@ -5,6 +5,28 @@
     "path": "01-Knowledge-Base",
     "children": [
       {
+        "name": "AWS",
+        "type": "directory",
+        "path": "01-Knowledge-Base/AWS",
+        "children": [
+          {
+            "name": "01-networking-advanced-patterns.md",
+            "type": "file",
+            "path": "01-Knowledge-Base/AWS/01-networking-advanced-patterns.md"
+          },
+          {
+            "name": "02-iam-advance-patterns.md",
+            "type": "file",
+            "path": "01-Knowledge-Base/AWS/02-iam-advance-patterns.md"
+          },
+          {
+            "name": "03-landing-zone.md",
+            "type": "file",
+            "path": "01-Knowledge-Base/AWS/03-landing-zone.md"
+          }
+        ]
+      },
+      {
         "name": "CI-CD",
         "type": "directory",
         "path": "01-Knowledge-Base/CI-CD",
@@ -97,11 +119,6 @@
             "path": "01-Knowledge-Base/IaC/04-Pre-commit-and-Validation.md"
           }
         ]
-      },
-      {
-        "name": "aws.md",
-        "type": "file",
-        "path": "01-Knowledge-Base/aws.md"
       },
       {
         "name": "cloud-arch.md",

@@ -45,7 +45,9 @@ body.dark-mode {
 }
 
 /* ─── Reset ────────────────────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -65,10 +67,23 @@ body {
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
 
 /* ─── Layout ───────────────────────────────────────────────────────── */
 .app-container {
@@ -188,7 +203,9 @@ body {
   font-size: 0.75rem;
 }
 
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}
 
 /* ─── File Tree ─────────────────────────────────────────────────────── */
 .file-tree {
@@ -206,7 +223,8 @@ body {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.35rem 1rem 0.35rem 0;  /* left padding set by JS per-depth */
+  padding: 0.35rem 1rem 0.35rem 0;
+  /* left padding set by JS per-depth */
   font-size: 0.875rem;
   font-weight: 400;
   cursor: pointer;
@@ -243,8 +261,13 @@ body {
   cursor: pointer;
 }
 
-.tree-children { display: block; }
-.tree-children.collapsed { display: none; }
+.tree-children {
+  display: block;
+}
+
+.tree-children.collapsed {
+  display: none;
+}
 
 .caret-icon {
   width: 10px;
@@ -253,7 +276,10 @@ body {
   transition: transform 0.2s;
   flex-shrink: 0;
 }
-.caret-icon.rotated { transform: rotate(90deg); }
+
+.caret-icon.rotated {
+  transform: rotate(90deg);
+}
 
 .folder-icon {
   color: #f59e0b;
@@ -314,10 +340,14 @@ body {
 }
 
 /* Hide menu toggle on desktop by default (since sidebar is open) */
-#menu-toggle { display: none; }
+#menu-toggle {
+  display: none;
+}
 
 /* Show menu toggle on desktop ONLY when sidebar is collapsed */
-.sidebar.collapsed + .main-content #menu-toggle { display: flex; }
+.sidebar.collapsed+.main-content #menu-toggle {
+  display: flex;
+}
 
 .breadcrumbs {
   font-size: 0.875rem;
@@ -442,7 +472,9 @@ body {
   color: var(--text-main);
 }
 
-.text-primary { color: var(--accent); }
+.text-primary {
+  color: var(--accent);
+}
 
 /* ─── AI Disclaimer Callout ─────────────────────────────────────────── */
 .ai-disclaimer {
@@ -495,7 +527,76 @@ body {
   margin-top: 0.25rem !important;
 }
 
+/* ─── Collapsible Q&A — details/summary ────────────────────────────── */
+.markdown-body details {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin: 0.5rem 0 1.5rem 0;
+  background: var(--bg-card);
+  transition: background var(--transition-speed), border-color var(--transition-speed);
+  overflow: hidden;
+}
+
+.markdown-body details[open] {
+  border-color: var(--accent);
+  background: var(--bg-main);
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+.markdown-body details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  margin: 0.75rem 1rem;
+  font-family: var(--font-interface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  user-select: none;
+  transition: background var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.markdown-body details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.markdown-body details > summary::before {
+  content: '▶';
+  font-size: 0.55rem;
+  transition: transform 0.2s ease;
+}
+
+.markdown-body details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.markdown-body details[open] > summary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.markdown-body details > summary:hover {
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.markdown-body details > *:not(summary) {
+  padding: 0 1.25rem;
+}
+
+.markdown-body details > *:last-child {
+  padding-bottom: 1.1rem;
+}
+
 /* ─── Markdown Body (Medium-style reading) ─────────────────────────── */
+
 .markdown-body {
   max-width: var(--reading-max-width);
   width: 100%;
@@ -524,9 +625,17 @@ body {
   color: var(--text-main);
 }
 
-.markdown-body.cv h1 { font-size: 2.5rem; }
-.markdown-body.cv h2 { font-size: 1.8rem; }
-.markdown-body.cv h3 { font-size: 1.5rem; }
+.markdown-body.cv h1 {
+  font-size: 2.5rem;
+}
+
+.markdown-body.cv h2 {
+  font-size: 1.8rem;
+}
+
+.markdown-body.cv h3 {
+  font-size: 1.5rem;
+}
 
 /* Headers — back to sans-serif for clear hierarchy */
 .markdown-body h1 {
@@ -576,7 +685,8 @@ body {
 }
 
 /* Lists */
-.markdown-body ul, .markdown-body ol {
+.markdown-body ul,
+.markdown-body ol {
   margin: 0 0 1.5rem 1.5rem;
 }
 
@@ -613,7 +723,9 @@ body {
   font-style: italic;
 }
 
-.markdown-body blockquote p { margin-bottom: 0; }
+.markdown-body blockquote p {
+  margin-bottom: 0;
+}
 
 /* Tables */
 .markdown-body table {
@@ -624,7 +736,8 @@ body {
   font-size: 0.9rem;
 }
 
-.markdown-body th, .markdown-body td {
+.markdown-body th,
+.markdown-body td {
   padding: 0.75rem 1rem;
   border: 1px solid var(--border-color);
   text-align: left;
@@ -644,7 +757,7 @@ body.dark-mode .markdown-body tr:nth-child(even) {
 }
 
 /* Inline Code — only for code NOT inside a pre block */
-.markdown-body :not(pre) > code {
+.markdown-body :not(pre)>code {
   font-family: var(--font-mono);
   background-color: rgba(175, 184, 193, 0.2);
   border: none;
@@ -655,7 +768,7 @@ body.dark-mode .markdown-body tr:nth-child(even) {
   font-weight: 500;
 }
 
-body.dark-mode .markdown-body :not(pre) > code {
+body.dark-mode .markdown-body :not(pre)>code {
   background-color: rgba(110, 118, 129, 0.2);
   color: #f08d49;
 }
@@ -670,7 +783,8 @@ body.dark-mode .markdown-body :not(pre) > code {
 
 /* Code Blocks — let Prism VSC Dark+ theme handle all token colours */
 .markdown-body pre {
-  margin: 0;          /* outer margin is owned by .code-container */
+  margin: 0;
+  /* outer margin is owned by .code-container */
   position: relative;
   border-radius: 0;
   overflow: hidden;
@@ -694,8 +808,10 @@ body.dark-mode .markdown-body :not(pre) > code {
 /* Reset overrides so Prism's theme colours are respected */
 .markdown-body pre code {
   display: block !important;
-  background: transparent !important;   /* pre/theme sets the bg */
-  color: inherit !important;            /* let Prism .token spans colour the text */
+  background: transparent !important;
+  /* pre/theme sets the bg */
+  color: inherit !important;
+  /* let Prism .token spans colour the text */
   font-family: var(--font-mono) !important;
   font-size: 0.875rem;
   line-height: 1.7;
@@ -816,14 +932,26 @@ body.dark-mode .markdown-body :not(pre) > code {
 
 /* ─── Animations ───────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 992px) {
-  :root { --sidebar-width: 260px; }
-  .content-body { padding: 2.5rem 1.5rem; }
+  :root {
+    --sidebar-width: 260px;
+  }
+
+  .content-body {
+    padding: 2.5rem 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -837,12 +965,15 @@ body.dark-mode .markdown-body :not(pre) > code {
     transform: translateX(0);
   }
 
-  #menu-toggle { 
-    display: flex; 
-    font-size: 1rem; /* slightly larger tap target on mobile */
+  #menu-toggle {
+    display: flex;
+    font-size: 1rem;
+    /* slightly larger tap target on mobile */
   }
 
-  .content-header { padding: 0 1.25rem; }
+  .content-header {
+    padding: 0 1.25rem;
+  }
 
   .content-body {
     padding: 2rem 1.25rem;

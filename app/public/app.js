@@ -297,6 +297,20 @@ async function loadDocument(node) {
     // Parse Markdown to HTML
     let htmlContent = marked.parse(markdown);
     elements.markdownContainer.innerHTML = htmlContent;
+    
+    // Auto-generate IDs for all headings to support TOC links
+    const headings = elements.markdownContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headings.forEach(heading => {
+      if (!heading.id) {
+        // Convert text to lowercase, replace spaces and special chars with hyphens
+        const id = heading.textContent.trim().toLowerCase()
+          .replace(/[^\w\s-]/g, '') // Remove punctuation
+          .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+          .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+        heading.id = id;
+      }
+    });
+
     // Apply CV styling if the document is from the CV folder
     if (node.path.toLowerCase().includes('99-cv') || node.path.toLowerCase().includes('cv')) {
       elements.markdownContainer.classList.add('cv');
@@ -485,10 +499,24 @@ function interceptMarkdownLinks(currentPath) {
   const links = elements.markdownContainer.querySelectorAll('a');
   links.forEach(link => {
     const href = link.getAttribute('href');
-    if (!href || href.startsWith('http') || href.startsWith('#')) {
-      if (href && href.startsWith('http')) {
-        link.setAttribute('target', '_blank'); // Open external links in new tab
-      }
+    if (!href) return;
+    
+    if (href.startsWith('http')) {
+      link.setAttribute('target', '_blank'); // Open external links in new tab
+      return;
+    }
+    
+    // Handle internal TOC anchor links
+    if (href.startsWith('#')) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = href.substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          // Scroll the content body smoothly to the target heading
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
       return;
     }
     
