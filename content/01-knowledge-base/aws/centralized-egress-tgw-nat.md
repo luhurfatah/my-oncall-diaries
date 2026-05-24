@@ -24,8 +24,6 @@
 
 ## 1. Architecture Overview & Design Decisions
 
-<img src="/assets/centralized-egress-architecture.png" alt="Centralized Egress Architecture — TGW + NAT Gateway topology" style="max-width: 860px;">
-
 ### What Centralized Egress Solves
 
 Without centralized egress, every spoke account independently manages:
