@@ -1,267 +1,326 @@
 [
   {
-    "name": "01-Knowledge-Base",
+    "name": "01-knowledge-base",
     "type": "directory",
-    "path": "01-Knowledge-Base",
+    "path": "01-knowledge-base",
     "children": [
       {
-        "name": "AWS",
+        "name": "aws",
         "type": "directory",
-        "path": "01-Knowledge-Base/AWS",
+        "path": "01-knowledge-base/aws",
         "children": [
           {
-            "name": "01-networking-advanced-patterns.md",
+            "name": "00-index.md",
             "type": "file",
-            "path": "01-Knowledge-Base/AWS/01-networking-advanced-patterns.md"
+            "path": "01-knowledge-base/aws/00-index.md"
           },
           {
-            "name": "02-iam-advance-patterns.md",
+            "name": "centralized-egress-tgw-nat.md",
             "type": "file",
-            "path": "01-Knowledge-Base/AWS/02-iam-advance-patterns.md"
+            "path": "01-knowledge-base/aws/centralized-egress-tgw-nat.md"
           },
           {
-            "name": "03-landing-zone.md",
+            "name": "landing-zone.md",
             "type": "file",
-            "path": "01-Knowledge-Base/AWS/03-landing-zone.md"
+            "path": "01-knowledge-base/aws/landing-zone.md"
+          },
+          {
+            "name": "well-architected-framework.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/well-architected-framework.md"
           }
         ]
       },
       {
-        "name": "CI-CD",
+        "name": "cicd",
         "type": "directory",
-        "path": "01-Knowledge-Base/CI-CD",
+        "path": "01-knowledge-base/cicd",
         "children": [
           {
-            "name": "00-Index.md",
+            "name": "00-index.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/00-Index.md"
+            "path": "01-knowledge-base/cicd/00-index.md"
           },
           {
-            "name": "01-Paradigms-and-Concepts.md",
+            "name": "01-paradigms-and-concepts.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/01-Paradigms-and-Concepts.md"
+            "path": "01-knowledge-base/cicd/01-paradigms-and-concepts.md"
           },
           {
-            "name": "02-Best-Practices.md",
+            "name": "02-best-practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/02-Best-Practices.md"
+            "path": "01-knowledge-base/cicd/02-best-practices.md"
           },
           {
-            "name": "03-Build-Once-Deploy-Many.md",
+            "name": "03-build-once-deploy-many.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/03-Build-Once-Deploy-Many.md"
+            "path": "01-knowledge-base/cicd/03-build-once-deploy-many.md"
           },
           {
-            "name": "04-Pipeline-Optimization.md",
+            "name": "04-pipeline-optimization.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/04-Pipeline-Optimization.md"
+            "path": "01-knowledge-base/cicd/04-pipeline-optimization.md"
           },
           {
-            "name": "05-GitHub-Actions-Pattern.md",
+            "name": "05-github-actions-pattern.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/05-GitHub-Actions-Pattern.md"
+            "path": "01-knowledge-base/cicd/05-github-actions-pattern.md"
           },
           {
-            "name": "06-Blue-Green-Deployment.md",
+            "name": "06-blue-green-deployment.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/06-Blue-Green-Deployment.md"
+            "path": "01-knowledge-base/cicd/06-blue-green-deployment.md"
           },
           {
-            "name": "07-GitOps-Best-Practices.md",
+            "name": "07-gitops-best-practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/07-GitOps-Best-Practices.md"
+            "path": "01-knowledge-base/cicd/07-gitops-best-practices.md"
           },
           {
-            "name": "08-ArgoCD-Deep-Dive.md",
+            "name": "08-argocd-deep-dive.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/08-ArgoCD-Deep-Dive.md"
+            "path": "01-knowledge-base/cicd/08-argocd-deep-dive.md"
           },
           {
-            "name": "09-Flux-CD-Deep-Dive.md",
+            "name": "09-flux-cd-deep-dive.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/09-Flux-CD-Deep-Dive.md"
+            "path": "01-knowledge-base/cicd/09-flux-cd-deep-dive.md"
           },
           {
-            "name": "99-References.md",
+            "name": "99-references.md",
             "type": "file",
-            "path": "01-Knowledge-Base/CI-CD/99-References.md"
+            "path": "01-knowledge-base/cicd/99-references.md"
           }
         ]
       },
       {
-        "name": "IaC",
+        "name": "iaac",
         "type": "directory",
-        "path": "01-Knowledge-Base/IaC",
+        "path": "01-knowledge-base/iaac",
         "children": [
           {
-            "name": "00-Index.md",
+            "name": "00-index.md",
             "type": "file",
-            "path": "01-Knowledge-Base/IaC/00-Index.md"
+            "path": "01-knowledge-base/iaac/00-index.md"
           },
           {
-            "name": "01-Paradigms-and-Concepts.md",
+            "name": "01-paradigms-and-concepts.md",
             "type": "file",
-            "path": "01-Knowledge-Base/IaC/01-Paradigms-and-Concepts.md"
+            "path": "01-knowledge-base/iaac/01-paradigms-and-concepts.md"
           },
           {
-            "name": "02-Best-Practices.md",
+            "name": "02-best-practices.md",
             "type": "file",
-            "path": "01-Knowledge-Base/IaC/02-Best-Practices.md"
+            "path": "01-knowledge-base/iaac/02-best-practices.md"
           },
           {
-            "name": "03-Terragrunt-Guide.md",
+            "name": "03-terragrunt-guide.md",
             "type": "file",
-            "path": "01-Knowledge-Base/IaC/03-Terragrunt-Guide.md"
+            "path": "01-knowledge-base/iaac/03-terragrunt-guide.md"
           },
           {
-            "name": "04-Pre-commit-and-Validation.md",
+            "name": "04-pre-commit-and-validation.md",
             "type": "file",
-            "path": "01-Knowledge-Base/IaC/04-Pre-commit-and-Validation.md"
+            "path": "01-knowledge-base/iaac/04-pre-commit-and-validation.md"
           }
         ]
       },
       {
-        "name": "cloud-arch.md",
-        "type": "file",
-        "path": "01-Knowledge-Base/cloud-arch.md"
-      },
-      {
-        "name": "cloud-security.md",
-        "type": "file",
-        "path": "01-Knowledge-Base/cloud-security.md"
-      },
-      {
-        "name": "k8s.md",
-        "type": "file",
-        "path": "01-Knowledge-Base/k8s.md"
+        "name": "k8s",
+        "type": "directory",
+        "path": "01-knowledge-base/k8s",
+        "children": [
+          {
+            "name": "gitops-helm.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/gitops-helm.md"
+          },
+          {
+            "name": "networking-security.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/networking-security.md"
+          },
+          {
+            "name": "observability.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/observability.md"
+          },
+          {
+            "name": "operation.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/operation.md"
+          },
+          {
+            "name": "scheduling-autoscaling.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/scheduling-autoscaling.md"
+          },
+          {
+            "name": "workload-design.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/workload-design.md"
+          }
+        ]
       }
     ]
   },
   {
-    "name": "02-Interview-Prep",
+    "name": "02-interview-prep",
     "type": "directory",
-    "path": "02-Interview-Prep",
+    "path": "02-interview-prep",
     "children": [
       {
         "name": "aws.md",
         "type": "file",
-        "path": "02-Interview-Prep/aws.md"
+        "path": "02-interview-prep/aws.md"
       },
       {
         "name": "cicd.md",
         "type": "file",
-        "path": "02-Interview-Prep/cicd.md"
+        "path": "02-interview-prep/cicd.md"
       },
       {
         "name": "iaac.md",
         "type": "file",
-        "path": "02-Interview-Prep/iaac.md"
+        "path": "02-interview-prep/iaac.md"
       },
       {
         "name": "k8s.md",
         "type": "file",
-        "path": "02-Interview-Prep/k8s.md"
+        "path": "02-interview-prep/k8s.md"
+      },
+      {
+        "name": "terraform.md",
+        "type": "file",
+        "path": "02-interview-prep/terraform.md"
       }
     ]
   },
   {
-    "name": "03-Labs",
+    "name": "03-labs",
     "type": "directory",
-    "path": "03-Labs",
+    "path": "03-labs",
     "children": [
       {
-        "name": "Platform-Engineering",
+        "name": "active-directory",
         "type": "directory",
-        "path": "03-Labs/Platform-Engineering",
+        "path": "03-labs/active-directory",
+        "children": [
+          {
+            "name": "01-ad-dns-setup.md",
+            "type": "file",
+            "path": "03-labs/active-directory/01-ad-dns-setup.md"
+          },
+          {
+            "name": "02-gpo-fundamentals.md",
+            "type": "file",
+            "path": "03-labs/active-directory/02-gpo-fundamentals.md"
+          },
+          {
+            "name": "03-advanced-gpo.md",
+            "type": "file",
+            "path": "03-labs/active-directory/03-advanced-gpo.md"
+          },
+          {
+            "name": "04-multi-dc-replication.md",
+            "type": "file",
+            "path": "03-labs/active-directory/04-multi-dc-replication.md"
+          }
+        ]
+      },
+      {
+        "name": "platform-engineering",
+        "type": "directory",
+        "path": "03-labs/platform-engineering",
         "children": [
           {
             "name": "lab-01-fundamentals.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-01-fundamentals.md"
+            "path": "03-labs/platform-engineering/lab-01-fundamentals.md"
           },
           {
             "name": "lab-02-k8s-foundation.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-02-k8s-foundation.md"
+            "path": "03-labs/platform-engineering/lab-02-k8s-foundation.md"
           },
           {
             "name": "lab-03-gitops-basics.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-03-gitops-basics.md"
+            "path": "03-labs/platform-engineering/lab-03-gitops-basics.md"
           },
           {
             "name": "lab-04-argocd-helm.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-04-argocd-helm.md"
+            "path": "03-labs/platform-engineering/lab-04-argocd-helm.md"
           },
           {
             "name": "lab-05-crossplane-install.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-05-crossplane-install.md"
+            "path": "03-labs/platform-engineering/lab-05-crossplane-install.md"
           },
           {
             "name": "lab-06-managed-resources.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-06-managed-resources.md"
+            "path": "03-labs/platform-engineering/lab-06-managed-resources.md"
           },
           {
             "name": "lab-07-compositions-xrds.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-07-compositions-xrds.md"
+            "path": "03-labs/platform-engineering/lab-07-compositions-xrds.md"
           },
           {
             "name": "lab-08-backstage-setup.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-08-backstage-setup.md"
+            "path": "03-labs/platform-engineering/lab-08-backstage-setup.md"
           },
           {
             "name": "lab-09-software-templates.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-09-software-templates.md"
+            "path": "03-labs/platform-engineering/lab-09-software-templates.md"
           },
           {
             "name": "lab-10-gitops-iac.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-10-gitops-iac.md"
+            "path": "03-labs/platform-engineering/lab-10-gitops-iac.md"
           },
           {
             "name": "lab-11-applicationsets.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-11-applicationsets.md"
+            "path": "03-labs/platform-engineering/lab-11-applicationsets.md"
           },
           {
             "name": "lab-12-advanced-compositions.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-12-advanced-compositions.md"
+            "path": "03-labs/platform-engineering/lab-12-advanced-compositions.md"
           },
           {
             "name": "lab-13-backstage-plugins.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-13-backstage-plugins.md"
+            "path": "03-labs/platform-engineering/lab-13-backstage-plugins.md"
           },
           {
             "name": "lab-14-full-idp.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-14-full-idp.md"
+            "path": "03-labs/platform-engineering/lab-14-full-idp.md"
           },
           {
             "name": "lab-15-security-observability.md",
             "type": "file",
-            "path": "03-Labs/Platform-Engineering/lab-15-security-observability.md"
+            "path": "03-labs/platform-engineering/lab-15-security-observability.md"
           }
         ]
       }
     ]
   },
   {
-    "name": "99-CV",
+    "name": "99-cv",
     "type": "directory",
-    "path": "99-CV",
+    "path": "99-cv",
     "children": [
       {
         "name": "luhur.md",
         "type": "file",
-        "path": "99-CV/luhur.md"
+        "path": "99-cv/luhur.md"
       }
     ]
   }

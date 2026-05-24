@@ -36,7 +36,8 @@ const elements = {
   nextDocTitle: document.getElementById('next-doc-title'),
   fontDecrease: document.getElementById('font-decrease'),
   fontIncrease: document.getElementById('font-increase'),
-  widthToggle: document.getElementById('width-toggle')
+  widthToggle: document.getElementById('width-toggle'),
+  backToTop: document.getElementById('back-to-top')
 };
 
 // Initial Setup
@@ -127,12 +128,24 @@ function setupEventListeners() {
     }
   });
 
-  // Scroll Progress Bar
+  // Scroll Progress Bar + Back to Top visibility
   elements.contentBody.addEventListener('scroll', () => {
     const scrollTop = elements.contentBody.scrollTop;
     const scrollHeight = elements.contentBody.scrollHeight - elements.contentBody.clientHeight;
     const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     elements.progressBar.style.width = `${progress}%`;
+
+    // Show back-to-top after scrolling 300px
+    if (scrollTop > 300) {
+      elements.backToTop.classList.add('visible');
+    } else {
+      elements.backToTop.classList.remove('visible');
+    }
+  });
+
+  // Back to Top click
+  elements.backToTop.addEventListener('click', () => {
+    elements.contentBody.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   // Document Navigation Clicks
@@ -147,6 +160,57 @@ function setupEventListeners() {
       loadDocument(flatFilesList[currentFileIndex + 1]);
     }
   });
+
+  // Sidebar Resizing Logic
+  const resizer = document.getElementById('sidebar-resizer');
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isResizing = true;
+    document.body.classList.add('is-resizing');
+    resizer.classList.add('active');
+    // Disable CSS transition during resizing for instant dragging feedback
+    elements.sidebar.style.transition = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    if (window.innerWidth <= 768) return; // Disable resizing on mobile
+
+    let newWidth = e.clientX;
+    // Constrain width between 200px and 600px
+    if (newWidth < 200) newWidth = 200;
+    if (newWidth > 600) newWidth = 600;
+
+    elements.sidebar.style.width = `${newWidth}px`;
+    elements.sidebar.style.minWidth = `${newWidth}px`;
+    document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.classList.remove('is-resizing');
+      resizer.classList.remove('active');
+      // Re-enable transition for smooth toggling/collapsing later
+      elements.sidebar.style.transition = '';
+      
+      // Save user preference
+      const currentWidth = parseInt(elements.sidebar.style.width);
+      if (currentWidth) {
+        localStorage.setItem('sidebar-width', `${currentWidth}px`);
+      }
+    }
+  });
+
+  // Load saved sidebar width
+  const savedWidth = localStorage.getItem('sidebar-width');
+  if (savedWidth && window.innerWidth > 768) {
+    elements.sidebar.style.width = savedWidth;
+    elements.sidebar.style.minWidth = savedWidth;
+    document.documentElement.style.setProperty('--sidebar-width', savedWidth);
+  }
 }
 
 // Fetch File Tree from static JSON
@@ -155,10 +219,10 @@ async function fetchFileTree() {
     const response = await fetch('tree.json');
     if (!response.ok) throw new Error('Failed to load file list');
     fileTreeData = await response.json();
-    
+
     // Flatten files list for next/previous navigation
     buildFlatFilesList(fileTreeData);
-    
+
     // Render the Sidebar File Tree
     renderFileTree(fileTreeData);
   } catch (error) {
@@ -187,11 +251,11 @@ function renderFileTree(data) {
   elements.fileTree.innerHTML = '';
   const rootUl = document.createElement('ul');
   rootUl.style.listStyle = 'none';
-  
+
   data.forEach(node => {
     rootUl.appendChild(createTreeNode(node));
   });
-  
+
   elements.fileTree.appendChild(rootUl);
 }
 
@@ -279,25 +343,25 @@ async function loadDocument(node) {
     elements.welcomeScreen.classList.add('hidden');
     elements.markdownContainer.classList.remove('hidden');
     elements.markdownContainer.innerHTML = `<div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading content...</div>`;
-    
+
     currentActivePath = node.path;
     updateSidebarActiveState();
-    
+
     // Auto-wide mode for CV
     if (node.path.toLowerCase().includes('cv')) {
       applyWidthMode(true);
     } else {
       applyWidthMode(false);
     }
-    
+
     const response = await fetch(`content/${node.path}`);
     if (!response.ok) throw new Error('Failed to fetch file content');
     const markdown = await response.text();
-    
+
     // Parse Markdown to HTML
     let htmlContent = marked.parse(markdown);
     elements.markdownContainer.innerHTML = htmlContent;
-    
+
     // Auto-generate IDs for all headings to support TOC links
     const headings = elements.markdownContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
     headings.forEach(heading => {
@@ -317,20 +381,20 @@ async function loadDocument(node) {
     } else {
       elements.markdownContainer.classList.remove('cv');
     }
-    
+
     // Set breadcrumbs
     updateBreadcrumbs(node.path);
-    
+
     // Highlight Code blocks and insert custom copy buttons
     processCodeBlocks();
     Prism.highlightAll();
-    
+
     // Intercept internal markdown links
     interceptMarkdownLinks(node.path);
-    
+
     // Update Navigation links (Previous/Next)
     updateDocNavigation(node);
-    
+
     // Scroll reading area to top
     elements.contentBody.scrollTop = 0;
     elements.progressBar.style.width = '0%';
@@ -344,14 +408,14 @@ async function loadDocument(node) {
 function updateSidebarActiveState() {
   const treeLabels = document.querySelectorAll('.tree-label');
   treeLabels.forEach(label => label.classList.remove('active'));
-  
+
   // Find node matching current path and mark active
   const matchingLabel = Array.from(treeLabels).find(label => {
     const parentNode = label.parentElement;
     // Walk down and check child/file matches if any, or find by exact match
     return label.querySelector('span').textContent === currentActivePath.split('/').pop();
   });
-  
+
   // Handled at generation time but clean up manually on click
   fetchFileTree();
 }
@@ -360,12 +424,12 @@ function updateSidebarActiveState() {
 function updateBreadcrumbs(filePath) {
   elements.breadcrumbs.innerHTML = '';
   const parts = filePath.split('/');
-  
+
   parts.forEach((part, index) => {
     const span = document.createElement('span');
     span.textContent = part;
     elements.breadcrumbs.appendChild(span);
-    
+
     if (index < parts.length - 1) {
       const sep = document.createElement('span');
       sep.className = 'separator';
@@ -376,12 +440,15 @@ function updateBreadcrumbs(filePath) {
 }
 
 // Add language bars and copy buttons on code blocks
+// Blocks with more than COLLAPSE_THRESHOLD lines start collapsed
+const COLLAPSE_THRESHOLD = 20;
+
 function processCodeBlocks() {
   const preBlocks = elements.markdownContainer.querySelectorAll('pre');
   preBlocks.forEach(pre => {
     const code = pre.querySelector('code');
     if (!code) return;
-    
+
     // Extract language name
     let lang = 'text';
     code.classList.forEach(cls => {
@@ -389,23 +456,62 @@ function processCodeBlocks() {
         lang = cls.replace('language-', '');
       }
     });
-    
-    // Create custom wrapper and header bar
+
+    // Count lines in the code block
+    const lineCount = code.textContent.split('\n').length;
+    const isLong = lineCount > COLLAPSE_THRESHOLD;
+
+    // Create outer wrapper
     const container = document.createElement('div');
-    container.className = 'code-container';
-    
+    container.className = 'code-container' + (isLong ? ' collapsible collapsed' : '');
+
+    // Header bar with language label + copy button
     const header = document.createElement('div');
     header.className = 'code-header';
     header.innerHTML = `
       <span><i class="fa-solid fa-code"></i> ${lang.toUpperCase()}</span>
       <button class="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button>
     `;
-    
-    pre.parentNode.insertBefore(container, pre);
+
+    // Wrap the <pre> in .code-body for height control
+    // ⚠️ Capture parent & sibling BEFORE detaching pre from the live DOM
+    const parent = pre.parentNode;
+    const nextSibling = pre.nextSibling;
+
+    const codeBody = document.createElement('div');
+    codeBody.className = 'code-body';
+
+    // Insert container into live DOM at pre's original position
+    if (nextSibling) {
+      parent.insertBefore(container, nextSibling);
+    } else {
+      parent.appendChild(container);
+    }
+
+    // Now safe to build internal structure
     container.appendChild(header);
-    container.appendChild(pre);
-    
-    // Hook copy clipboard event
+    codeBody.appendChild(pre);       // detaches pre → moves into codeBody
+    container.appendChild(codeBody);
+
+    // For long blocks: add expand/collapse toggle button
+    if (isLong) {
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'code-toggle-btn';
+      toggleBtn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> <span>Show ${lineCount} lines</span>`;
+      container.appendChild(toggleBtn);
+
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = container.classList.toggle('collapsed');
+        const label = toggleBtn.querySelector('span');
+        if (isCollapsed) {
+          label.textContent = `Show ${lineCount} lines`;
+        } else {
+          label.textContent = 'Collapse';
+        }
+      });
+    }
+
+    // Copy button
     const copyBtn = header.querySelector('.copy-btn');
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(code.textContent).then(() => {
@@ -423,14 +529,14 @@ function processCodeBlocks() {
 // Update Footer Prev/Next buttons
 function updateDocNavigation(currentNode) {
   currentFileIndex = flatFilesList.findIndex(f => f.path === currentNode.path);
-  
+
   if (currentFileIndex === -1) {
     elements.docNavigation.classList.add('hidden');
     return;
   }
-  
+
   elements.docNavigation.classList.remove('hidden');
-  
+
   // Previous Document Button setup
   if (currentFileIndex > 0) {
     elements.prevDocBtn.classList.remove('hidden');
@@ -438,7 +544,7 @@ function updateDocNavigation(currentNode) {
   } else {
     elements.prevDocBtn.classList.add('hidden');
   }
-  
+
   // Next Document Button setup
   if (currentFileIndex < flatFilesList.length - 1) {
     elements.nextDocBtn.classList.remove('hidden');
@@ -453,11 +559,11 @@ function handleSearch(e) {
   const query = e.target.value.toLowerCase().trim();
   if (query.length > 0) {
     elements.searchClear.classList.remove('hidden');
-    
+
     // Filter tree matching query
     const filteredTree = filterTree(fileTreeData, query);
     renderFileTree(filteredTree);
-    
+
     // Keep matches expanded
     const childrenUl = document.querySelectorAll('.tree-children');
     childrenUl.forEach(ul => {
@@ -476,7 +582,7 @@ function handleSearch(e) {
 // Recursively filter tree data matching the search string
 function filterTree(nodes, query) {
   const result = [];
-  
+
   nodes.forEach(node => {
     if (node.type === 'file' && node.name.toLowerCase().includes(query)) {
       result.push(node);
@@ -490,7 +596,7 @@ function filterTree(nodes, query) {
       }
     }
   });
-  
+
   return result;
 }
 
@@ -500,12 +606,12 @@ function interceptMarkdownLinks(currentPath) {
   links.forEach(link => {
     const href = link.getAttribute('href');
     if (!href) return;
-    
+
     if (href.startsWith('http')) {
       link.setAttribute('target', '_blank'); // Open external links in new tab
       return;
     }
-    
+
     // Handle internal TOC anchor links
     if (href.startsWith('#')) {
       link.addEventListener('click', (e) => {
@@ -519,7 +625,7 @@ function interceptMarkdownLinks(currentPath) {
       });
       return;
     }
-    
+
     // Only intercept links to other markdown files
     if (href.endsWith('.md')) {
       link.addEventListener('click', (e) => {
@@ -528,7 +634,7 @@ function interceptMarkdownLinks(currentPath) {
           // Resolve relative path using the URL API (dummy base needed for relative resolution)
           const base = new URL(`http://dummy.com/${currentPath}`);
           const resolvedPath = new URL(href, base).pathname.substring(1);
-          
+
           // Find target file in flatFilesList
           const targetNode = flatFilesList.find(f => f.path === resolvedPath);
           if (targetNode) {

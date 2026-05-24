@@ -68,6 +68,9 @@
       </div>
     </aside>
 
+    <!-- Sidebar Resize Handle -->
+    <div class="sidebar-resizer" id="sidebar-resizer"></div>
+
     <!-- Main Content Panel -->
     <main class="main-content">
       <header class="content-header">
@@ -80,15 +83,6 @@
         </div>
 
         <div class="header-actions">
-          <button id="font-decrease" class="btn-icon" title="Decrease Font Size">
-            <i class="fa-solid fa-minus"></i>
-          </button>
-          <button id="font-increase" class="btn-icon" title="Increase Font Size">
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <button id="width-toggle" class="btn-icon" title="Toggle Content Width">
-            <i class="fa-solid fa-left-right"></i>
-          </button>
           <button id="theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode">
             <i class="fa-solid fa-moon"></i>
           </button>
@@ -102,12 +96,13 @@
         <div id="welcome-screen" class="welcome-container">
           <div class="welcome-card">
             <h1>Welcome to myOncallDiaries</h1>
-            <p class="intro-lead">Documenting everything so future me stops asking ChatGPT the same question twice. Some
-              engineers learn from mistakes — I learn from my browser history.</p>
-            <p class="intro-sub">Too many AI conversations. A relentless curiosity about cloud and DevOps. This blog is
-              what happens when you finally write it all down instead of losing it in a chat window.</p>
+            <p class="intro-lead">Documenting everything so future me stops asking <b>ChatGPT</b> the same question
+              twice.</p>
+            <p class="intro-sub">Real engineers document as they go. I document by pasting my ChatGPT history into a
+              blog and calling it content strategy.
+            </p>
             <div class="features-section">
-              <h3 class="features-heading">What's inside</h3>
+              <h3 class="features-heading">Features</h3>
               <div class="features-grid">
                 <div class="feature-card">
                   <i class="fa-solid fa-code feature-icon"></i>
@@ -145,9 +140,7 @@
             </div>
             <div class="ai-disclaimer">
               <i class="fa-solid fa-robot ai-disclaimer-icon"></i>
-              <p><em>All content researched with AI. I asked the questions. It answered. We both pretended to be
-                  sure.</em></p>
-              <p class="ai-disclaimer-sub">Yes, including the webapp.</p>
+              <p>All content researched with AI. I asked the questions. It answered. We both pretended to be sure.</p>
             </div>
           </div>
         </div>
@@ -176,6 +169,24 @@
       </article>
     </main>
   </div>
+
+  <!-- Floating Tool Panel -->
+  <div id="floating-toolbar" class="floating-toolbar">
+    <button id="width-toggle" class="btn-float" title="Toggle Content Width">
+      <i class="fa-solid fa-left-right"></i>
+    </button>
+    <button id="font-increase" class="btn-float" title="Increase Font Size">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <button id="font-decrease" class="btn-float" title="Decrease Font Size">
+      <i class="fa-solid fa-minus"></i>
+    </button>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button id="back-to-top" title="Back to top" aria-label="Scroll back to top">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
 
   <!-- CDN scripts -->
   <!-- Marked.js for MD rendering -->
