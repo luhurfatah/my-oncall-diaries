@@ -1,8 +1,6 @@
 # AWS Well-Architected Framework — Production Reference
 
-> **Scope:** All six pillars of the AWS Well-Architected Framework with production patterns, trade-off analysis, anti-patterns, and review process guidance. Written for architecture design decisions, WAF Tool workload reviews, and team onboarding. AWS-primary, but principles are cloud-agnostic.
-
----
+All six pillars of the AWS Well-Architected Framework with production patterns, trade-off analysis, anti-patterns, and review process guidance. Written for architecture design decisions, WAF Tool workload reviews, and team onboarding. AWS-primary, but principles are cloud-agnostic.
 
 ## Table of Contents
 
@@ -594,7 +592,3 @@ The AWS Well-Architected Tool (WAT) in the AWS Management Console acts as your c
     *   Export the review PDF and store it in your internal documentation registry.
     *   Create corresponding JIRA tickets for all HRIs (P1 priority) and MRIs (P2 priority).
     *   Track remediation progress. Re-evaluate the workload in the WAT every 90 days and save a new milestone to visually track your risk reduction over time.
-
----
-
-*Last updated: 2026-05 | Author: Personal KB | Stack: AWS Well-Architected Framework 2024, WAT, all six pillars*

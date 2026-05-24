@@ -20,6 +20,26 @@
             "path": "01-knowledge-base/aws/centralized-egress-tgw-nat.md"
           },
           {
+            "name": "centralized-vpc-endpoints.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/centralized-vpc-endpoints.md"
+          },
+          {
+            "name": "ec2-instance-scheduler.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/ec2-instance-scheduler.md"
+          },
+          {
+            "name": "egress-inspection-gwlb.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/egress-inspection-gwlb.md"
+          },
+          {
+            "name": "finops.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/finops.md"
+          },
+          {
             "name": "landing-zone.md",
             "type": "file",
             "path": "01-knowledge-base/aws/landing-zone.md"
@@ -28,6 +48,11 @@
             "name": "well-architected-framework.md",
             "type": "file",
             "path": "01-knowledge-base/aws/well-architected-framework.md"
+          },
+          {
+            "name": "workload-identity-irsa.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/workload-identity-irsa.md"
           }
         ]
       },

@@ -1,8 +1,6 @@
 # AWS Landing Zones — Control Tower, AFT & Enterprise Patterns
 
-> **Scope:** Production AWS landing zone design using AWS Control Tower and Account Factory for Terraform (AFT). Covers account vending, guardrails, networking topologies, security baselines, and the non-obvious pitfalls of running landing zones at scale.
-
----
+Production AWS landing zone design using AWS Control Tower and Account Factory for Terraform (AFT). Covers account vending, guardrails, networking topologies, security baselines, and the non-obvious pitfalls of running landing zones at scale.
 
 ## Table of Contents
 
@@ -492,7 +490,3 @@ Automated tests to run against every account in the shadow org:
 - Default VPC is deleted in all regions
 - No IAM users with console access (all access via SSO)
 - Security Hub is enrolled and reporting findings
-
----
-
-*Last updated: 2026-05 | Author: Personal KB | Stack: AWS Control Tower 3.x, AFT 1.12.x, AWS Organizations, IAM Identity Center*

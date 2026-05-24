@@ -1,8 +1,6 @@
 # Centralized Egress — Transit Gateway & NAT Gateway
 
-> **Scope:** Production centralized internet egress architecture on AWS using Transit Gateway (TGW) and NAT Gateway. Covers TGW routing design, NAT Gateway patterns, DNS, security inspection, failure modes, and the non-obvious operational gotchas of running egress at scale across many accounts.
-
----
+Production centralized internet egress architecture on AWS using Transit Gateway (TGW) and NAT Gateway. Covers TGW routing design, NAT Gateway patterns, DNS, security inspection, failure modes, and the non-obvious operational gotchas of running egress at scale across many accounts.
 
 ## Table of Contents
 
@@ -674,7 +672,3 @@ Execute this review quarterly to optimize capacity and minimize costs:
 - Audit TGW route tables and remove stale static route records.
 - Conduct a security review of active Network Firewall rule sets and purge outdated permissions.
 - Reconcile IPAM records and verify all active spoke VPC CIDRs are correctly logged.
-
----
-
-*Last updated: 2026-05 | Author: Personal KB | Stack: AWS Transit Gateway, NAT Gateway, AWS Network Firewall, Route 53 Resolver, VPC*

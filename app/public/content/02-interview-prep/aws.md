@@ -1,23 +1,5 @@
 # AWS Interview Questions: The Ultimate Cheatsheet
 
-This document consolidates 34 of the most common and complex AWS architecture interview questions. Click **Show Answer** under any question to reveal the answer.
-
-## Table of Contents
-
-| Section | Topic |
-| :---: | :--- |
-| **01** | [Architecture & Multi-Account Design](#1-architecture--multi-account-design) |
-| **02** | [Networking & Hybrid Connectivity](#2-networking--hybrid-connectivity) |
-| **03** | [Security, IAM & Data Protection](#3-security-iam--data-protection) |
-| **04** | [Compute, Containers & Serverless](#4-compute-containers--serverless) |
-| **05** | [DevOps, CI/CD & Infrastructure as Code](#5-devops-cicd--infrastructure-as-code) |
-| **06** | [Operations, Monitoring & Disaster Recovery](#6-operations-monitoring--disaster-recovery) |
-| **07** | [Cost Optimization & Billing](#7-cost-optimization--billing) |
-
----
-
-## 1. Architecture & Multi-Account Design
-
 ### Q: How do you design multi-account AWS environments?
 
 <details>
@@ -94,10 +76,6 @@ Match the database to the access pattern:
 
 </details>
 
----
-
-## 2. Networking & Hybrid Connectivity
-
 ### Q: Explain your experience with VPC, subnets, and security groups.
 
 <details>
@@ -149,10 +127,6 @@ Terminate DX at a **Direct Connect Gateway** attached to a Transit Gateway. Use 
 4. For hybrid, check Direct Connect or VPN CloudWatch metrics for packet drops or tunnel saturation.
 
 </details>
-
----
-
-## 3. Security, IAM & Data Protection
 
 ### Q: How do you manage hybrid identity (AWS SSO, Active Directory integration)?
 
@@ -238,10 +212,6 @@ Layer multiple controls: **SCPs** set hard maximum limits for the entire account
 
 </details>
 
----
-
-## 4. Compute, Containers & Serverless
-
 ### Q: What is the difference between ECS and EKS, and when would you use each?
 
 <details>
@@ -304,10 +274,6 @@ I build decoupled systems using **EventBridge** as the central event bus for rou
 
 </details>
 
----
-
-## 5. DevOps, CI/CD & Infrastructure as Code
-
 ### Q: What AWS services would you use for CI/CD, and how would you set up the pipeline?
 
 <details>
@@ -346,10 +312,6 @@ In practice, I often use **GitHub Actions** or **GitLab CI** integrating with AW
 4. **Automated rollbacks:** CloudWatch Alarms monitor HTTP 5xx errors — if they spike post-deployment, CodeDeploy automatically reverts.
 
 </details>
-
----
-
-## 6. Operations, Monitoring & Disaster Recovery
 
 ### Q: What's your approach to designing DR (Disaster Recovery) strategies in AWS?
 
@@ -404,10 +366,6 @@ It depends on the RTO (Recovery Time Objective) and RPO (Recovery Point Objectiv
 5. Store logs in a dedicated, immutable **Security account** using S3 Object Lock (WORM) — even admins cannot delete them.
 
 </details>
-
----
-
-## 7. Cost Optimization & Billing
 
 ### Q: How do you monitor and optimize AWS costs in a production environment?
 

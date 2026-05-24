@@ -172,7 +172,7 @@ body {
   background-color: var(--accent);
 }
 
-.sidebar.collapsed + .sidebar-resizer {
+.sidebar.collapsed+.sidebar-resizer {
   display: none !important;
 }
 
@@ -415,7 +415,7 @@ body.is-resizing * {
 }
 
 /* Show menu toggle on desktop ONLY when sidebar is collapsed */
-.sidebar.collapsed ~ .main-content #menu-toggle {
+.sidebar.collapsed~.main-content #menu-toggle {
   display: flex;
 }
 
@@ -626,7 +626,7 @@ body.dark-mode .feature-card:hover {
   box-shadow: 0 2px 12px var(--accent-glow);
 }
 
-.markdown-body details > summary {
+.markdown-body details>summary {
   list-style: none;
   cursor: pointer;
   display: inline-flex;
@@ -647,34 +647,34 @@ body.dark-mode .feature-card:hover {
   transition: background var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.markdown-body details > summary::-webkit-details-marker {
+.markdown-body details>summary::-webkit-details-marker {
   display: none;
 }
 
-.markdown-body details > summary::before {
+.markdown-body details>summary::before {
   content: '▶';
   font-size: 0.55rem;
   transition: transform 0.2s ease;
 }
 
-.markdown-body details[open] > summary::before {
+.markdown-body details[open]>summary::before {
   transform: rotate(90deg);
 }
 
-.markdown-body details[open] > summary {
+.markdown-body details[open]>summary {
   background: var(--accent);
   color: #fff;
 }
 
-.markdown-body details > summary:hover {
+.markdown-body details>summary:hover {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.markdown-body details > *:not(summary) {
+.markdown-body details>*:not(summary) {
   padding: 0 1.25rem;
 }
 
-.markdown-body details > *:last-child {
+.markdown-body details>*:last-child {
   padding-bottom: 1.1rem;
 }
 
@@ -742,7 +742,7 @@ body.dark-mode .feature-card:hover {
   letter-spacing: -0.02em;
   color: var(--text-main);
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
+  /* border-bottom: 1px solid var(--border-color); */
 }
 
 .markdown-body h3 {
@@ -819,7 +819,7 @@ body.dark-mode .feature-card:hover {
   margin: 2rem auto;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* Tables */
@@ -1023,7 +1023,7 @@ body.dark-mode .markdown-body :not(pre)>code {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  box-shadow: 0 4px 16px var(--accent-glow), 0 2px 6px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px var(--accent-glow), 0 2px 6px rgba(0, 0, 0, 0.18);
   opacity: 0;
   transform: translateY(12px) scale(0.9);
   pointer-events: none;
@@ -1038,7 +1038,7 @@ body.dark-mode .markdown-body :not(pre)>code {
 
 #back-to-top:hover {
   background: var(--primary);
-  box-shadow: 0 6px 20px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.22);
+  box-shadow: 0 6px 20px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.22);
   transform: translateY(-2px) scale(1.05);
 }
 
