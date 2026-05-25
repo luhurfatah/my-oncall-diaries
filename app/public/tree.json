@@ -67,54 +67,39 @@
             "path": "01-knowledge-base/cicd/00-index.md"
           },
           {
-            "name": "01-paradigms-and-concepts.md",
+            "name": "blue-green-deployment.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/01-paradigms-and-concepts.md"
+            "path": "01-knowledge-base/cicd/blue-green-deployment.md"
           },
           {
-            "name": "02-best-practices.md",
+            "name": "build-once-deploy-many.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/02-best-practices.md"
+            "path": "01-knowledge-base/cicd/build-once-deploy-many.md"
           },
           {
-            "name": "03-build-once-deploy-many.md",
+            "name": "cicd-best-practices.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/03-build-once-deploy-many.md"
+            "path": "01-knowledge-base/cicd/cicd-best-practices.md"
           },
           {
-            "name": "04-pipeline-optimization.md",
+            "name": "cicd-paradigms-and-concepts.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/04-pipeline-optimization.md"
+            "path": "01-knowledge-base/cicd/cicd-paradigms-and-concepts.md"
           },
           {
-            "name": "05-github-actions-pattern.md",
+            "name": "dora-matrix.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/05-github-actions-pattern.md"
+            "path": "01-knowledge-base/cicd/dora-matrix.md"
           },
           {
-            "name": "06-blue-green-deployment.md",
+            "name": "git-said-so.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/06-blue-green-deployment.md"
+            "path": "01-knowledge-base/cicd/git-said-so.md"
           },
           {
-            "name": "07-gitops-best-practices.md",
+            "name": "github-actions-reference.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/07-gitops-best-practices.md"
-          },
-          {
-            "name": "08-argocd-deep-dive.md",
-            "type": "file",
-            "path": "01-knowledge-base/cicd/08-argocd-deep-dive.md"
-          },
-          {
-            "name": "09-flux-cd-deep-dive.md",
-            "type": "file",
-            "path": "01-knowledge-base/cicd/09-flux-cd-deep-dive.md"
-          },
-          {
-            "name": "99-references.md",
-            "type": "file",
-            "path": "01-knowledge-base/cicd/99-references.md"
+            "path": "01-knowledge-base/cicd/github-actions-reference.md"
           }
         ]
       },
@@ -156,34 +141,24 @@
         "path": "01-knowledge-base/k8s",
         "children": [
           {
-            "name": "gitops-helm.md",
+            "name": "how-cni-works.md",
             "type": "file",
-            "path": "01-knowledge-base/k8s/gitops-helm.md"
+            "path": "01-knowledge-base/k8s/how-cni-works.md"
           },
           {
-            "name": "networking-security.md",
+            "name": "how-csi-works.md",
             "type": "file",
-            "path": "01-knowledge-base/k8s/networking-security.md"
+            "path": "01-knowledge-base/k8s/how-csi-works.md"
           },
           {
-            "name": "observability.md",
+            "name": "kubernetes-under-the-hood.md",
             "type": "file",
-            "path": "01-knowledge-base/k8s/observability.md"
+            "path": "01-knowledge-base/k8s/kubernetes-under-the-hood.md"
           },
           {
-            "name": "operation.md",
+            "name": "pod-disruption-budgets.md",
             "type": "file",
-            "path": "01-knowledge-base/k8s/operation.md"
-          },
-          {
-            "name": "scheduling-autoscaling.md",
-            "type": "file",
-            "path": "01-knowledge-base/k8s/scheduling-autoscaling.md"
-          },
-          {
-            "name": "workload-design.md",
-            "type": "file",
-            "path": "01-knowledge-base/k8s/workload-design.md"
+            "path": "01-knowledge-base/k8s/pod-disruption-budgets.md"
           }
         ]
       }
