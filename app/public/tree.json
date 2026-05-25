@@ -45,6 +45,11 @@
             "path": "01-knowledge-base/aws/landing-zone.md"
           },
           {
+            "name": "privatelink.md",
+            "type": "file",
+            "path": "01-knowledge-base/aws/privatelink.md"
+          },
+          {
             "name": "well-architected-framework.md",
             "type": "file",
             "path": "01-knowledge-base/aws/well-architected-framework.md"
@@ -114,11 +119,6 @@
             "path": "01-knowledge-base/iaac/00-index.md"
           },
           {
-            "name": "01-paradigms-and-concepts.md",
-            "type": "file",
-            "path": "01-knowledge-base/iaac/01-paradigms-and-concepts.md"
-          },
-          {
             "name": "02-best-practices.md",
             "type": "file",
             "path": "01-knowledge-base/iaac/02-best-practices.md"
@@ -132,6 +132,11 @@
             "name": "04-pre-commit-and-validation.md",
             "type": "file",
             "path": "01-knowledge-base/iaac/04-pre-commit-and-validation.md"
+          },
+          {
+            "name": "paradigms-and-concepts.md",
+            "type": "file",
+            "path": "01-knowledge-base/iaac/paradigms-and-concepts.md"
           }
         ]
       },
@@ -159,6 +164,28 @@
             "name": "pod-disruption-budgets.md",
             "type": "file",
             "path": "01-knowledge-base/k8s/pod-disruption-budgets.md"
+          }
+        ]
+      },
+      {
+        "name": "sre",
+        "type": "directory",
+        "path": "01-knowledge-base/sre",
+        "children": [
+          {
+            "name": "humans-and-orgs.md",
+            "type": "file",
+            "path": "01-knowledge-base/sre/humans-and-orgs.md"
+          },
+          {
+            "name": "keeping-the-lights-on.md",
+            "type": "file",
+            "path": "01-knowledge-base/sre/keeping-the-lights-on.md"
+          },
+          {
+            "name": "what-and-why.md",
+            "type": "file",
+            "path": "01-knowledge-base/sre/what-and-why.md"
           }
         ]
       }
