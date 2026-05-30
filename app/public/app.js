@@ -6,6 +6,9 @@ let currentActivePath = '';
 let currentFontSize = 1.2;
 let isWideMode = false;
 
+// In-memory content cache: path -> rendered HTML string
+const contentCache = new Map();
+
 function applyWidthMode(overrideWide) {
   if (overrideWide || isWideMode) {
     document.documentElement.style.setProperty('--reading-max-width', '1200px');
@@ -44,7 +47,35 @@ const elements = {
 document.addEventListener('DOMContentLoaded', () => {
   fetchFileTree();
   setupEventListeners();
+  setupHashRouting();
 });
+
+// Hash-based URL Routing
+function setupHashRouting() {
+  // Load doc from hash on initial page load
+  const loadFromHash = () => {
+    const hash = window.location.hash.slice(1); // remove leading '#'
+    if (hash) {
+      // Wait for file tree to be ready, then navigate
+      const tryLoad = () => {
+        const node = flatFilesList.find(f => f.path === hash);
+        if (node) {
+          loadDocument(node, true); // true = skip hash update (already in URL)
+        } else if (flatFilesList.length === 0) {
+          // Tree not ready yet, retry in 100ms
+          setTimeout(tryLoad, 100);
+        }
+      };
+      tryLoad();
+    }
+  };
+
+  // Handle browser back/forward navigation
+  window.addEventListener('hashchange', loadFromHash);
+
+  // Delay initial hash load so fetchFileTree() can populate flatFilesList
+  setTimeout(loadFromHash, 50);
+}
 
 // Configure Marked.js for safe custom rendering
 marked.setOptions({
@@ -63,6 +94,8 @@ function setupEventListeners() {
     currentActivePath = '';
     updateSidebarActiveState();
     elements.breadcrumbs.innerHTML = '<span>Dashboard</span>';
+    // Clear the hash URL when going home
+    history.replaceState(null, '', window.location.pathname);
     if (window.innerWidth <= 768) {
       elements.sidebar.classList.remove('open');
     }
@@ -338,14 +371,26 @@ function createTreeNode(node, depth = 0) {
 }
 
 // Fetch and render single Markdown file
-async function loadDocument(node) {
+// skipHashUpdate = true when called from hashchange handler (avoids loop)
+async function loadDocument(node, skipHashUpdate = false) {
   try {
     elements.welcomeScreen.classList.add('hidden');
     elements.markdownContainer.classList.remove('hidden');
-    elements.markdownContainer.innerHTML = `<div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading content...</div>`;
 
     currentActivePath = node.path;
     updateSidebarActiveState();
+
+    // Update the URL hash so this doc has its own shareable URL
+    if (!skipHashUpdate) {
+      history.replaceState(null, '', `#${node.path}`);
+    }
+
+    // Serve from cache if available (instant re-visits)
+    if (contentCache.has(node.path)) {
+      elements.markdownContainer.innerHTML = contentCache.get(node.path);
+    } else {
+      elements.markdownContainer.innerHTML = `<div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading content...</div>`;
+    }
 
     // Auto-wide mode for CV
     if (node.path.toLowerCase().includes('cv')) {
@@ -354,6 +399,32 @@ async function loadDocument(node) {
       applyWidthMode(false);
     }
 
+    // Apply CV styling if the document is from the CV folder
+    if (node.path.toLowerCase().includes('99-cv') || node.path.toLowerCase().includes('cv')) {
+      elements.markdownContainer.classList.add('cv');
+    } else {
+      elements.markdownContainer.classList.remove('cv');
+    }
+
+    // Set breadcrumbs immediately
+    updateBreadcrumbs(node.path);
+
+    // Update Navigation links (Previous/Next)
+    updateDocNavigation(node);
+
+    // Scroll reading area to top
+    elements.contentBody.scrollTop = 0;
+    elements.progressBar.style.width = '0%';
+
+    // If cached, re-run post-render hooks and return early
+    if (contentCache.has(node.path)) {
+      processCodeBlocks();
+      Prism.highlightAll();
+      interceptMarkdownLinks(node.path);
+      return;
+    }
+
+    // Fetch fresh content
     const response = await fetch(`content/${node.path}`);
     if (!response.ok) throw new Error('Failed to fetch file content');
     const markdown = await response.text();
@@ -366,24 +437,16 @@ async function loadDocument(node) {
     const headings = elements.markdownContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
     headings.forEach(heading => {
       if (!heading.id) {
-        // Convert text to lowercase, replace spaces and special chars with hyphens
         const id = heading.textContent.trim().toLowerCase()
-          .replace(/[^\w\s-]/g, '') // Remove punctuation
-          .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
-          .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+          .replace(/[^\w\s-]/g, '')
+          .replace(/[\s_-]+/g, '-')
+          .replace(/^-+|-+$/g, '');
         heading.id = id;
       }
     });
 
-    // Apply CV styling if the document is from the CV folder
-    if (node.path.toLowerCase().includes('99-cv') || node.path.toLowerCase().includes('cv')) {
-      elements.markdownContainer.classList.add('cv');
-    } else {
-      elements.markdownContainer.classList.remove('cv');
-    }
-
-    // Set breadcrumbs
-    updateBreadcrumbs(node.path);
+    // Store in cache
+    contentCache.set(node.path, elements.markdownContainer.innerHTML);
 
     // Highlight Code blocks and insert custom copy buttons
     processCodeBlocks();
@@ -391,33 +454,37 @@ async function loadDocument(node) {
 
     // Intercept internal markdown links
     interceptMarkdownLinks(node.path);
-
-    // Update Navigation links (Previous/Next)
-    updateDocNavigation(node);
-
-    // Scroll reading area to top
-    elements.contentBody.scrollTop = 0;
-    elements.progressBar.style.width = '0%';
   } catch (error) {
     elements.markdownContainer.innerHTML = `<div class="error-text"><i class="fa-solid fa-triangle-exclamation"></i> Error loading file content.</div>`;
     console.error(error);
   }
 }
 
-// Update Active class in Sidebar
+// Update Active class in Sidebar (DOM-only, no re-fetch)
 function updateSidebarActiveState() {
   const treeLabels = document.querySelectorAll('.tree-label');
   treeLabels.forEach(label => label.classList.remove('active'));
 
-  // Find node matching current path and mark active
-  const matchingLabel = Array.from(treeLabels).find(label => {
-    const parentNode = label.parentElement;
-    // Walk down and check child/file matches if any, or find by exact match
-    return label.querySelector('span').textContent === currentActivePath.split('/').pop();
-  });
-
-  // Handled at generation time but clean up manually on click
-  fetchFileTree();
+  // Find the label whose span text matches the current file name
+  // and ensure it belongs to the correct path by checking data attribute
+  const filename = currentActivePath.split('/').pop();
+  for (const label of treeLabels) {
+    const span = label.querySelector('span');
+    if (span && span.textContent === filename) {
+      label.classList.add('active');
+      // Ensure parent folders are expanded
+      let parent = label.parentElement;
+      while (parent) {
+        if (parent.classList && parent.classList.contains('tree-children')) {
+          parent.classList.remove('collapsed');
+          const caret = parent.previousElementSibling?.querySelector('.caret-icon');
+          if (caret) caret.classList.add('rotated');
+        }
+        parent = parent.parentElement;
+      }
+      break;
+    }
+  }
 }
 
 // Setup Breadcrumb headers

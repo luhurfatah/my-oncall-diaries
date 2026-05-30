@@ -124,11 +124,6 @@
             "path": "01-knowledge-base/iaac/02-best-practices.md"
           },
           {
-            "name": "03-terragrunt-guide.md",
-            "type": "file",
-            "path": "01-knowledge-base/iaac/03-terragrunt-guide.md"
-          },
-          {
             "name": "04-pre-commit-and-validation.md",
             "type": "file",
             "path": "01-knowledge-base/iaac/04-pre-commit-and-validation.md"
@@ -137,6 +132,11 @@
             "name": "paradigms-and-concepts.md",
             "type": "file",
             "path": "01-knowledge-base/iaac/paradigms-and-concepts.md"
+          },
+          {
+            "name": "pattern.md",
+            "type": "file",
+            "path": "01-knowledge-base/iaac/pattern.md"
           }
         ]
       },
@@ -196,6 +196,11 @@
     "type": "directory",
     "path": "02-interview-prep",
     "children": [
+      {
+        "name": "00-index.md",
+        "type": "file",
+        "path": "02-interview-prep/00-index.md"
+      },
       {
         "name": "aws.md",
         "type": "file",
