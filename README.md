@@ -1,67 +1,148 @@
-# my Oncall Diaries
+# 📓 my Oncall Diaries
 
-A personal blog and logbook for documenting engineering issues, cloud configurations, DevOps problems, and daily learnings. Built to stop searching chat histories and start building a searchable knowledge base.
+> A personal knowledge base and engineering blog — built for engineers who are tired of re-learning the same lessons twice.
+
+Stop digging through old Slack threads and half-finished Notion pages. **my Oncall Diaries** is a lightweight, fully static site that turns your Markdown notes into a searchable, navigable knowledge base — deployable to GitHub Pages in minutes.
+
+🌐 **Live Demo**: [View the site on GitHub Pages](https://your-username.github.io/myoncalldiaries)
+
+---
+
+## ✨ What's Inside
+
+The knowledge base is organized into four sections:
+
+| Section | Description |
+|---|---|
+| `01-knowledge-base/` | Deep-dive technical guides — AWS, Kubernetes, SRE, CI/CD, IaaC |
+| `02-interview-prep/` | Cheat sheets and interview Q&A for cloud and platform engineering roles |
+| `03-labs/` | Hands-on platform engineering labs (Backstage, Crossplane, Argo CD) |
+| `99-cv/` | Professional CV in Markdown format |
+
+---
 
 ## 🚀 Features
 
-- **Markdown Native**: Write all your entries in standard Markdown (`.md`).
-- **Code Highlighting**: Built-in syntax highlighting for HCL, YAML, Bash, Dockerfile, JavaScript, and more.
-- **Fast Search**: Instant filtering and search across all files and topics.
-- **Copy Code Blocks**: One-click copy for any snippet in your logs.
-- **Fully Static**: No database required. Generates a fully static site that is easily hosted on GitHub Pages.
-- **Dark/Light Mode**: Toggleable theme that remembers your preference (if implemented) or just provides an easy switch.
+- **Markdown Native** — Write everything in standard `.md` files. No CMS, no database.
+- **Instant Search** — Filter and search across all topics and files in real time.
+- **Syntax Highlighting** — Built-in support for HCL, YAML, Bash, Dockerfile, Python, and more.
+- **One-Click Copy** — Copy any code snippet directly from the rendered page.
+- **Auto-Navigation** — The sidebar is generated automatically from your folder structure.
+- **Fully Static** — No server needed. Runs on GitHub Pages out of the box.
+- **Dark / Light Mode** — Theme toggle included.
+
+---
+
+## 🛠️ Fork & Run Your Own Copy
+
+Want to use this as your own knowledge base? Here's how to get started in under 5 minutes.
+
+### Prerequisites
+
+- [Git](https://git-scm.com/)
+- [Node.js](https://nodejs.org/) v20+
+
+### Step 1 — Fork this Repository
+
+Click the **Fork** button at the top-right of this page on GitHub. This creates your own copy under your account.
+
+### Step 2 — Clone Your Fork
+
+```bash
+git clone https://github.com/<your-username>/myoncalldiaries.git
+cd myoncalldiaries
+```
+
+### Step 3 — Install Dependencies
+
+```bash
+cd app
+npm install
+```
+
+### Step 4 — Add Your Own Content
+
+Drop your Markdown files into the `content/` folder. Organize them into subfolders — the folder names become your navigation sections automatically.
+
+```
+content/
+├── aws/
+│   └── vpc-troubleshooting.md
+├── kubernetes/
+│   └── pod-scheduling.md
+└── my-runbooks/
+    └── on-call-checklist.md
+```
+
+### Step 5 — Preview Locally
+
+```bash
+# From the app/ directory
+npm run build
+```
+
+Then serve the static output with any static server:
+
+```bash
+# Option A — using npx serve
+npx serve public
+
+# Option B — using Python (no install needed)
+cd public && python3 -m http.server 3000
+```
+
+Open **http://localhost:3000** in your browser.
+
+---
+
+## 🌐 Deploy to GitHub Pages (Free Hosting)
+
+This repo ships with a ready-to-use GitHub Actions pipeline. Every push to `main` automatically rebuilds and redeploys your site.
+
+### One-time Setup
+
+1. Go to your forked repo on GitHub.
+2. Click **Settings** → **Pages** (left sidebar).
+3. Under **Build and deployment**, set the **Source** to **GitHub Actions**.
+4. Push any change to the `main` branch (or trigger the workflow manually from the **Actions** tab).
+
+Your site will be live at:
+```
+https://<your-username>.github.io/myoncalldiaries/
+```
+
+That's it. No servers, no cloud bills.
+
+---
 
 ## 📁 Repository Structure
 
-- `content/`: 📝 **Put your Markdown files here.** You can organize them into subfolders (e.g., `content/aws/`, `content/kubernetes/`). The app will automatically build a navigation tree based on this folder structure.
-- `app/`: Contains the viewer application, build scripts, and the generated public site.
-- `.github/workflows/`: Contains the CI/CD pipeline for GitHub Actions.
+```
+myoncalldiaries/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # GitHub Actions CI/CD pipeline
+├── app/
+│   ├── build.js             # Scans content/, generates tree.json, copies assets
+│   ├── server.js            # Optional local dev server
+│   ├── package.json
+│   └── public/              # Generated static site output (served by GitHub Pages)
+├── content/                 # ✏️  YOUR MARKDOWN NOTES GO HERE
+│   ├── 01-knowledge-base/
+│   ├── 02-interview-prep/
+│   ├── 03-labs/
+│   └── 99-cv/
+└── README.md
+```
 
-## 🛠️ How to Add Content
+---
 
-1. Create a new `.md` file inside the `content/` directory.
-2. Group files into logical folders if desired.
-3. Commit and push your changes to the `main` branch. GitHub Actions will automatically rebuild the site and deploy it!
+## 🤝 Contributing
 
-## 💻 Local Development & Testing
+This is a personal knowledge base, but PRs that improve the app itself (search, rendering, UI) are welcome. Open an issue first to discuss what you'd like to change.
 
-To preview your site locally before pushing:
+---
 
-1. **Navigate to the app directory**:
-   ```bash
-   cd app
-   ```
+## 📄 License
 
-2. **Install dependencies** (only needed once):
-   ```bash
-   npm install
-   ```
-
-3. **Build the static site**:
-   ```bash
-   npm run build
-   ```
-   This will run the `build.js` script, which scans your `content/` directory, generates a `tree.json` index, and copies all markdown files into the `app/public/content/` folder.
-
-4. **Serve the static files**:
-   Since the app is now fully static (for GitHub Pages compatibility), you can serve the `app/public` folder using any static web server. For example, you can use `npx`:
-   ```bash
-   npx serve public
-   ```
-   Or using Python:
-   ```bash
-   cd public
-   python3 -m http.server 3000
-   ```
-   Then open `http://localhost:3000` in your browser.
-
-## 🌐 Deployment (GitHub Pages)
-
-This repository is already configured with a continuous integration pipeline (`deploy.yml`). 
-
-To make it live:
-1. Go to your repository **Settings** on GitHub.
-2. Navigate to **Pages** in the left sidebar.
-3. Under **Build and deployment**, set the **Source** to **GitHub Actions**.
-4. Push a change to the `main` branch (or run the Action manually).
-5. Your site will be available at your GitHub Pages URL!
+MIT — free to fork, adapt, and make your own.
