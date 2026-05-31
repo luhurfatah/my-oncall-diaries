@@ -4,7 +4,7 @@
 
 Stop digging through old Slack threads and half-finished Notion pages. **my Oncall Diaries** is a lightweight, fully static site that turns your Markdown notes into a searchable, navigable knowledge base — deployable to GitHub Pages in minutes.
 
-🌐 **Live Demo**: [View the site on GitHub Pages](https://your-username.github.io/myoncalldiaries)
+🌐 **Live Demo**: [View the site on GitHub Pages](https://oncall-diaries.luhurfatah.com/)
 
 ---
 
@@ -49,8 +49,8 @@ Click the **Fork** button at the top-right of this page on GitHub. This creates 
 ### Step 2 — Clone Your Fork
 
 ```bash
-git clone https://github.com/<your-username>/myoncalldiaries.git
-cd myoncalldiaries
+git clone https://github.com/luhurfatah/my-oncall-diaries.git
+cd my-oncall-diaries
 ```
 
 ### Step 3 — Install Dependencies
