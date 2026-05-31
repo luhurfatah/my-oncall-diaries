@@ -1,7 +1,5 @@
 # Kubernetes Networking & CNI
 
-Conceptual deep-dive into how Kubernetes networking works at the pod and node level, how the Container Network Interface (CNI) specification enables pluggable network implementations, and how four production CNI plugins — AWS VPC CNI, Calico, Cilium, and Flannel — implement the Kubernetes networking model differently. Covers the Linux networking primitives that underpin all CNI plugins, the CNI plugin lifecycle, and the architectural trade-offs between overlay, underlay, and eBPF-based dataplanes.  
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -15,7 +13,7 @@ Conceptual deep-dive into how Kubernetes networking works at the pod and node le
 | **07** | [Calico: Routed Underlay with Policy](#7-calico-routed-underlay-with-policy) | BGP-based routing, Felix, BIRD, the Calico datastore, and network policy enforcement via iptables. |
 | **08** | [Cilium: eBPF-Native Networking](#8-cilium-ebpf-native-networking) | How Cilium replaces kube-proxy and iptables with eBPF programs, identity-based policy, and Hubble observability. |
 | **09** | [AWS VPC CNI: Native ENI Networking](#9-aws-vpc-cni-native-eni-networking) | How EKS assigns VPC IPs directly to pods, ENI management, IP warm pools, and the implications for IP exhaustion. |
-| **10** | [CNI Comparison & Selection Guide](#10-cni-comparison--selection-guide) | Side-by-side comparison across key properties and a decision framework for choosing a CNI. |
+| **10** | [CNI Comparison & Selection Guide](#10-cni-comparison-selection-guide) | Side-by-side comparison across key properties and a decision framework for choosing a CNI. |
 
 ---
 

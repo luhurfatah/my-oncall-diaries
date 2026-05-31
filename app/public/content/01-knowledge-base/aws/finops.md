@@ -1,23 +1,21 @@
 # AWS FinOps
 
-Cloud financial management for AWS environments. Covers cost visibility architecture, allocation strategy, commitment-based discounts, rightsizing, unit economics, anomaly detection, and organizational governance. 
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [FinOps Fundamentals & Maturity Model](#1-finops-fundamentals--maturity-model) | What FinOps is, the crawl-walk-run maturity framework, and common failure modes when getting started. |
+| **01** | [FinOps Fundamentals & Maturity Model](#1-finops-fundamentals-maturity-model) | What FinOps is, the crawl-walk-run maturity framework, and common failure modes when getting started. |
 | **02** | [Cost Visibility Architecture](#2-cost-visibility-architecture) | Account structure for cost isolation, Cost Explorer, CUR, and building a queryable cost data lake. |
-| **03** | [Tagging Strategy & Allocation](#3-tagging-strategy--allocation) | Tag taxonomy, enforcement via SCP and Config, shared cost allocation, and untagged resource recovery. |
-| **04** | [Savings Plans & Reserved Instances](#4-savings-plans--reserved-instances) | SP types, RI types, purchase decision framework, coverage targets, and management at org level. |
+| **03** | [Tagging Strategy & Allocation](#3-tagging-strategy-allocation) | Tag taxonomy, enforcement via SCP and Config, shared cost allocation, and untagged resource recovery. |
+| **04** | [Savings Plans & Reserved Instances](#4-savings-plans-reserved-instances) | SP types, RI types, purchase decision framework, coverage targets, and management at org level. |
 | **05** | [Spot Instances](#5-spot-instances) | Spot interruption model, mixed fleet ASG design, Spot for containers, and workload suitability. |
-| **06** | [Rightsizing & Waste Elimination](#6-rightsizing--waste-elimination) | Compute Optimizer integration, idle resource detection, GP2→GP3 migration, and S3 cost patterns. |
-| **07** | [Unit Economics & Showback/Chargeback](#7-unit-economics--showbackchargeback) | Cost per unit metrics, showback vs chargeback models, team accountability, and P&L mapping. |
+| **06** | [Rightsizing & Waste Elimination](#6-rightsizing-waste-elimination) | Compute Optimizer integration, idle resource detection, GP2→GP3 migration, and S3 cost patterns. |
+| **07** | [Unit Economics & Showback/Chargeback](#7-unit-economics-showbackchargeback) | Cost per unit metrics, showback vs chargeback models, team accountability, and P&L mapping. |
 | **08** | [Cost Anomaly Detection](#8-cost-anomaly-detection) | AWS Cost Anomaly Detection setup, SNS alerting, custom monitors, and runbook for spike investigation. |
 | **09** | [Data Transfer Cost Optimization](#9-data-transfer-cost-optimization) | Inter-AZ, inter-region, NAT Gateway, CloudFront, and PrivateLink cost patterns and mitigations. |
-| **10** | [Kubernetes & Container Cost Allocation](#10-kubernetes--container-cost-allocation) | EKS node cost attribution, Kubecost integration, namespace-level chargeback, and Fargate economics. |
+| **10** | [Kubernetes & Container Cost Allocation](#10-kubernetes-container-cost-allocation) | EKS node cost attribution, Kubecost integration, namespace-level chargeback, and Fargate economics. |
 | **11** | [FinOps Tooling Landscape](#11-finops-tooling-landscape) | Native AWS tools vs third-party (Apptio, CloudHealth, Vantage, FOCUS), trade-off comparison. |
-| **12** | [Governance & Operating Model](#12-governance--operating-model) | FinOps team structure, weekly cadence, budget alerts, SCP guardrails, and budget escalation paths. |
+| **12** | [Governance & Operating Model](#12-governance-operating-model) | FinOps team structure, weekly cadence, budget alerts, SCP guardrails, and budget escalation paths. |
 | **13** | [Day-2 Ops Checklist](#13-day-2-ops-checklist) | Weekly, monthly, and quarterly FinOps review cadence with concrete action items. |
 
 ---

@@ -1,7 +1,5 @@
 # CI/CD — Best Practices & Core Principles
 
-Foundational principles, pipeline design patterns, and operational standards for building reliable CI/CD systems. Covers branching strategy, deployment patterns, secret management, testing, rollback, observability integration, DevSecOps, and DORA metrics. Reference this before designing a new pipeline or auditing an existing one
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -15,7 +13,7 @@ Foundational principles, pipeline design patterns, and operational standards for
 | **07** | [Testing Strategy](#7-testing-strategy) | The test pyramid, what belongs at each level, and coverage philosophy. |
 | **08** | [Rollback Strategy](#8-rollback-strategy) | Rollback mechanisms per deployment tool, database migration safety, and the expand-contract pattern. |
 | **09** | [Observability Integration](#9-observability-integration) | Deployment events, dashboard markers, structured logs, and DORA metric collection. |
-| **10** | [DevSecOps — Security at Every Layer](#10-devsecops--security-at-every-layer) | Security controls mapped to pipeline layer: code, deps, secrets, container, IaC, runtime, supply chain. |
+| **10** | [DevSecOps — Security at Every Layer](#10-devsecops-security-at-every-layer) | Security controls mapped to pipeline layer: code, deps, secrets, container, IaC, runtime, supply chain. |
 | **11** | [DORA Metrics](#11-dora-metrics) | The four engineering performance indicators, elite targets, and how to measure each. |
 | **12** | [Anti-Patterns](#12-anti-patterns) | The ten most common CI/CD mistakes and what they cost you. |
 

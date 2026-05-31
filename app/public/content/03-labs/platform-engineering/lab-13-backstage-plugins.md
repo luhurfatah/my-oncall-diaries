@@ -1,8 +1,5 @@
 # Lab 13 — Backstage: Plugins & Kubernetes Integration
 
-> **Difficulty**: Advanced | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -27,27 +24,9 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Backstage Portal                     │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │                   Plugins                        │   │
-│  │                                                  │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │   │
-│  │  │Kubernetes│ │ Argo CD  │ │    TechDocs      │ │   │
-│  │  │ Plugin   │ │  Plugin  │ │    Plugin        │ │   │
-│  │  └────┬─────┘ └────┬─────┘ └────┬─────────────┘ │   │
-│  │       │             │            │                │   │
-│  └───────┼─────────────┼────────────┼────────────────┘   │
-│          │             │            │                     │
-│          ▼             ▼            ▼                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐               │
-│  │ K8s API  │  │Argo CD   │  │ Git Repo │               │
-│  │ Server   │  │API Server│  │ (docs)   │               │
-│  └──────────┘  └──────────┘  └──────────┘               │
-└─────────────────────────────────────────────────────────┘
-```
+- **Kubernetes Plugin:** Queries the Kubernetes API Server directly to surface pod logs, deployment statuses, and resource usage metrics.
+- **Argo CD Plugin:** Communicates with the Argo CD API Server to fetch live synchronization states and application health statuses.
+- **TechDocs Plugin:** Generates and serves HTML documentation pages compiled from Markdown files stored inside the application code repositories.
 
 ---
 
@@ -319,17 +298,10 @@ cat <<'EOF' > ~/platform-portal/docs/order-service/docs/architecture.md
 
 ## System Design
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐
-│  Client   │────▶│  Order   │────▶│ Payment  │
-│  (Web)    │     │  Service │     │ Gateway  │
-└──────────┘     └────┬─────┘     └──────────┘
-                      │
-                 ┌────▼─────┐
-                 │ PostgreSQL│
-                 │ Database  │
-                 └──────────┘
-```
+- **Client (Web Storefront):** Initiates operations by sending HTTP requests.
+- **Order Service:** Coordinates order state management and handles payment operations.
+- **Payment Gateway:** External third-party system processing payments.
+- **PostgreSQL Database:** Stores transactions, order history, and service state details.
 
 ## Technology Stack
 

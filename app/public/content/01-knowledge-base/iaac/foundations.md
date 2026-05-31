@@ -1,30 +1,25 @@
-# Infrastructure as Code — Patterns, Decisions & Scale
-
-Infrastructure as Code patterns, decision frameworks, trade-offs, and architectural standards. Covers how platform teams design, structure, scale, and operate infrastructure beyond simply writing Terraform. Focused on real-world infrastructure decisions rather than vendor features or syntax. Target audience: platform engineers, infrastructure architects, and senior engineers responsible for IaC strategy and operations across multi-account, multi-team environments.
-
----
+# IaC Paradigms, Patterns & Decisions
 
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [The IaC Mindset](#1-the-iac-mindset) | Core philosophy, desired state, and why IaC exists beyond automation convenience. |
-| **02** | [Core Concepts](#2-core-concepts) | State, idempotency, reconciliation, drift, and ownership boundaries explained precisely. |
-| **03** | [The IaC Maturity Model](#3-the-iac-maturity-model) | Evolution from ClickOps to platform engineering — honest assessment of each stage. |
-| **04** | [Infrastructure Patterns](#4-infrastructure-patterns) | Repository structures, module patterns, and composition models used in production. |
-| **05** | [Decision Framework](#5-decision-framework) | How to choose patterns instead of following templates blindly — the "it depends" decisions. |
-| **06** | [Multi-Environment Strategies](#6-multi-environment-strategies) | Managing dev, staging, and prod environments at scale without drift between them. |
-| **07** | [Multi-Account & Isolation](#7-multi-account--isolation) | Boundary and tenancy patterns — when to split accounts, OUs, and state. |
-| **08** | [State Management](#8-state-management) | Ownership, isolation, locking, scaling, corruption recovery, and blast radius. |
-| **09** | [Delivery Patterns](#9-delivery-patterns) | CI/CD and GitOps approaches for infrastructure — pipelines, promotion, and rollback. |
-| **10** | [Governance & Standards](#10-governance--standards) | Policies, guardrails, compliance controls, and module governance at org scale. |
-| **11** | [Operating IaC at Scale](#11-operating-iac-at-scale) | Drift detection, observability, recovery, toil reduction, and cost attribution. |
-| **12** | [Anti-Patterns](#12-anti-patterns) | Things that look good until production — the IaC mistakes every team makes once. |
-| **13** | [Architecture Decision Cheatsheet](#13-architecture-decision-cheatsheet) | Fast-lookup decision matrix for common IaC architectural choices. |
+| **01** | [The IaC Mindset & Philosophies](#1-the-iac-mindset-philosophies) | Why IaC exists, declarative vs imperative models, cattle vs pets, and immutable infrastructure. |
+| **02** | [Core Concepts](#2-core-concepts) | State, idempotency, reconciliation (human vs continuous), drift, and ownership boundaries. |
+| **03** | [The IaC Maturity Model](#3-the-iac-maturity-model) | The evolution from ClickOps and custom scripts to team-scale IaC and true platform engineering. |
+| **04** | [Infrastructure Delivery & Patterns](#4-infrastructure-delivery-patterns) | GitOps for IaC (push vs pull), code vs configuration separation, repository structures, and module composition models. |
+| **05** | [Decision Framework](#5-decision-framework) | Pragmatic "it depends" matrices for Monorepo vs Polyrepo, Workspaces vs Directory Separation, Single vs Split State, and Tool selection. |
+| **06** | [Multi-Environment Strategies](#6-multi-environment-strategies) | Managing dev, staging, and prod environment promotion, variable management, and ephemeral test environments. |
+| **07** | [Multi-Account & Isolation](#7-multi-account-isolation) | Landing zone patterns: when to split accounts/OUs, and managing cross-account resource access cleanly. |
+| **08** | [State Management & Blast Radius](#state) | Sizing state files, blast radius isolation, and sharing state securely using remote state or SSM parameter store. |
+| **09** | [Governance & Standards](#9-governance-standards) | Enforcing quality, guardrails, compliance controls, and module governance at organization scale. |
+| **10** | [Operating IaC at Scale](#10-operating-iac-at-scale) | Handling drift detection, continuous observability, recovery, toil reduction, and cost attribution. |
+| **11** | [Common Anti-Patterns](#11-common-anti-patterns) | Real-world IaC design mistakes, state-locking failures, and patterns that fail under production stress. |
+| **12** | [Architecture Decision Cheatsheet](#12-architecture-decision-cheatsheet) | Quick-reference lookup matrix for common IaC design dilemmas. |
 
 ---
 
-## 1. The IaC Mindset
+## 1. The IaC Mindset & Philosophies
 
 ### Why IaC Exists — The Actual Reason
 
@@ -32,18 +27,60 @@ The common answer is "automation" and "repeatability." Those are outcomes, not t
 
 The deeper purpose is **making infrastructure auditable, reviewable, and reversible**. When infrastructure is defined as code, you get version history, pull request reviews, and the ability to understand why a configuration decision was made three years ago — not because it is "documentation" but because the code *is* the system state.
 
-### Desired State vs Imperative Automation
+### Declarative vs Imperative IaC
 
-There are two fundamentally different philosophies for infrastructure automation:
+The most fundamental split in IaC tooling is between declarative and imperative models. Understanding the difference — and why declarative wins at scale — shapes every other decision in how you design and operate infrastructure.
 
-| Philosophy | Mechanism | Examples | Characteristic |
-| :--- | :--- | :--- | :--- |
-| **Desired state** | Declare what you want; tool figures out how to get there | Terraform, Pulumi, CloudFormation, Kubernetes manifests | Idempotent; tool owns the execution plan |
-| **Imperative automation** | Specify the steps to execute | Bash scripts, Ansible playbooks (partly), AWS CLI scripts | Predictable execution path; not inherently idempotent |
+**Declarative tools** (Terraform, OpenTofu, CloudFormation, Kubernetes manifests) ask you to describe the *desired end state* of your infrastructure. The tool owns the reconciliation loop: it compares what you declared against what currently exists, calculates the delta, and executes only the API calls needed to close the gap.
 
-Modern IaC is overwhelmingly desired-state. You declare "I want an S3 bucket named X with versioning enabled" — not "run `aws s3api create-bucket`, then `aws s3api put-bucket-versioning`." The tool determines what API calls to make based on the delta between current state and desired state.
+**Imperative tools** (AWS CLI scripts, Bash, Ansible in procedural mode) ask you to write the *steps* to achieve a state. You own the logic — checking whether resources exist, handling failures, managing ordering and dependencies. This is flexible but doesn't scale.
 
-The implication: desired-state tools are only as good as their understanding of current state. A tool that cannot accurately read the current state of your infrastructure will generate incorrect plans. This is why state management is the hardest part of IaC — not the code itself.
+| Property | Declarative | Imperative |
+| :--- | :--- | :--- |
+| **You define** | Desired end state | Step-by-step instructions |
+| **Dependency resolution** | Handled by the tool | Written manually by you |
+| **Idempotency** | Built-in | Must be coded explicitly |
+| **Drift detection** | Native (plan/diff) | Not possible without custom logic |
+| **Examples** | Terraform, CloudFormation, Pulumi | AWS CLI, Bash, Ansible (procedural) |
+
+**Declarative in practice:** To enable versioning on an S3 bucket, you declare `versioning = enabled`. If the bucket already exists but versioning is off, the tool enables it. If the bucket doesn't exist, it creates it with versioning on. You don't write a single conditional.
+
+**Imperative in practice:** The equivalent script must check if the bucket exists, branch on the result, call `create-bucket` if absent, then call `put-bucket-versioning` regardless. Every edge case you miss becomes a production incident.
+
+The practical cost of imperative IaC only becomes visible at scale. Managing 10 resources imperatively is manageable. Managing 500 resources across three environments and four regions imperatively is chaos — dependency ordering bugs, race conditions, and non-idempotent scripts that partially apply on re-run.
+
+### Cattle vs Pets in Infrastructure
+
+This mental model, coined in the early cloud era, describes two fundamentally different relationships engineers can have with their servers. It remains the clearest way to explain why IaC exists at all.
+
+**Pets** are servers that are individually named, hand-built, and nursed back to health when something goes wrong. Engineers log in, troubleshoot, and apply fixes directly to the running machine. The server accumulates history — packages installed ad hoc, config files edited by hand, services started and forgotten. Over time, no two servers are truly identical even if they started from the same base.
+
+**Cattle** are servers built from a standard template (an AMI, a container image, a Launch Template). They are identical, numbered rather than named, and entirely disposable. When a cattle server becomes unhealthy, degraded, or needs a change applied, it is terminated and replaced by a freshly built instance from the updated template. The fix happens in the template, not on the running machine.
+
+| Property | Pets | Cattle |
+| :--- | :--- | :--- |
+| **Identity** | Named, unique | Numbered, interchangeable |
+| **On failure** | Log in and repair | Terminate and replace |
+| **Configuration drift** | Inevitable | Eliminated by design |
+| **Scaling** | Hard — each new server is manual work | Trivial — clone the template |
+| **IaC compatibility** | Poor — state lives on the machine | Native — state lives in the template |
+
+The cattle model is what makes IaC, auto-scaling, and CI/CD pipelines possible. If your servers are pets, you can't automate their lifecycle — each one is a snowflake with undocumented history. If they're cattle, any pipeline can build, deploy, and replace them safely.
+
+### Immutable Infrastructure
+
+Immutable infrastructure takes the cattle model to its logical conclusion. Instead of applying changes to running servers — patching packages, updating config files, restarting services — you build a *new* machine image incorporating the change and deploy it to replace the old instances. The running servers are never modified after launch.
+
+The canonical tool for this is **Packer**, which bakes AMIs with all dependencies, config, and application artifacts pre-installed. When a change is needed, a new AMI is built, validated, and promoted through environments. Existing instances are replaced by new ones launched from the updated AMI.
+
+**Benefits of immutable infrastructure:**
+
+- **Environment parity:** Dev, staging, and prod all run from the same tested artifact. There is no "it works on my machine" — the machine is the artifact.
+- **Elimination of configuration drift:** Running servers cannot diverge from the declared state because they are never modified after launch.
+- **Clean rollbacks:** Rolling back means deploying the previous AMI version. There is no "undo" command to reverse a partial configuration change — you just re-deploy the known-good image.
+- **Simplified incident response:** When a server behaves unexpectedly, the correct response is terminate and replace, not investigate and patch. The investigation happens against the image build process, not the live server.
+
+The tradeoff is deployment speed. Baking a new AMI takes minutes; `apt upgrade` on a running server takes seconds. For most production workloads, the correctness and reliability gains are worth it.
 
 ### Infrastructure as a Product, Not a Project
 
@@ -57,9 +94,9 @@ This has direct implications for how platform teams are structured, funded, and 
 
 ### State
 
-State is the IaC tool's record of what it believes exists in the real world. In Terraform, this is a JSON file (`.tfstate`). Every resource Terraform manages has a corresponding state entry mapping its logical identifier (e.g., `aws_s3_bucket.my_bucket`) to its real-world attributes (bucket name, ARN, region, versioning config).
+State is the IaC tool's record of what it believes exists in the real world. In Terraform/OpenTofu, this is a JSON file (`.tfstate`). Every resource managed has a corresponding state entry mapping its logical identifier (e.g., `aws_s3_bucket.my_bucket`) to its real-world attributes (bucket name, ARN, region, versioning config).
 
-State is not a cache — it is the source of truth for the tool's plan generation. When Terraform runs a plan, it compares the desired state (`.tf` files) against the current state (`.tfstate`) to determine what changes to make. It does not always re-query the real world — it trusts state unless you run `terraform refresh` or use the `-refresh-only` flag.
+State is not a cache — it is the source of truth for the tool's plan generation. When the tool runs a plan, it compares the desired state (`.tf` files) against the current state (`.tfstate`) to determine what changes to make. It does not always re-query the real world — it trusts state unless you run `terraform refresh` or use the `-refresh-only` flag.
 
 **State is your most critical operational artifact.** A corrupted, lost, or split state file is an incident. Treat state backends with the same operational rigor as a production database.
 
@@ -68,7 +105,6 @@ State is not a cache — it is the source of truth for the tool's plan generatio
 An operation is idempotent if applying it multiple times produces the same result as applying it once. Desired-state IaC tools aim for idempotency: running `terraform apply` on an already-converged system should result in no changes.
 
 Idempotency fails in practice when:
-
 - Resources are created outside IaC (manual changes) that the tool then tries to recreate.
 - The tool's state diverges from the real world (drift).
 - External systems have side effects (e.g., an RDS instance whose parameter group has been modified manually, making the tool believe a change is needed on every plan).
@@ -83,7 +119,6 @@ This distinction matters: **Terraform is human-triggered reconciliation; Kuberne
 ### Drift
 
 Drift is the divergence between your declared desired state and the actual state of your infrastructure. It happens through:
-
 - Manual changes in the cloud provider console.
 - Changes made by another team or tool that manages the same resource.
 - AWS-initiated changes (e.g., AWS modifying a managed service's default configuration).
@@ -96,7 +131,6 @@ Drift is inevitable. Every organization has it. The question is how quickly it i
 Every infrastructure resource should have exactly one IaC owner — one module, one state file, one team responsible for it. When two IaC stacks both believe they manage the same resource, you have a split-brain problem that will produce conflicts, unexpected destroys, and confused plans.
 
 Common ownership boundary violations:
-
 - A security team's Terraform stack and an application team's stack both import and manage the same IAM role.
 - A shared networking stack and an application stack both have `aws_route_table_association` resources for the same subnet.
 - Two CI pipelines applying to the same Terraform state file concurrently (requires state locking to prevent).
@@ -139,7 +173,54 @@ This stage requires organizational investment — dedicated platform engineers, 
 
 ---
 
-## 4. Infrastructure Patterns
+## 4. Infrastructure Delivery & Patterns
+
+### GitOps for Infrastructure
+
+GitOps is the practice of using a Git repository as the single source of truth for both desired state and change history. Every infrastructure change — no matter how small — goes through a pull request, is reviewed, and is applied by an automated system rather than a human running commands locally.
+
+There are two delivery patterns for GitOps infrastructure, and choosing between them has significant operational implications.
+
+#### Pull-Based Reconciliation
+
+A controller running inside the cluster or cloud environment watches the Git repository. When it detects a difference between the declared state in Git and the actual state of the infrastructure, it automatically applies the necessary changes to reconcile them.
+
+*   **Tools:** Crossplane (for cloud resources), ArgoCD and Flux (for Kubernetes resources).
+*   **Key Property:** **Continuous reconciliation** — the controller doesn't just apply changes when you push; it continuously checks that the live state matches Git and corrects any drift, even drift caused by manual changes made outside the pipeline.
+
+#### Push-Based Pipelines
+
+A CI/CD runner (GitHub Actions, GitLab CI, Atlantis) is triggered by a merge to the main branch. It runs `terraform plan` on the PR and `terraform apply` on merge.
+
+*   **Tools:** Atlantis, GitHub Actions, GitLab CI.
+*   **Key Property:** **Event-driven application** — changes are applied when triggered by a Git event, not continuously. Drift that happens between pipeline runs is not automatically corrected.
+
+| Property | Pull-Based | Push-Based |
+| :--- | :--- | :--- |
+| **Drift correction** | Continuous, automatic | Only on next pipeline run |
+| **Operational model** | Controller manages state | Pipeline applies changes |
+| **Credential exposure** | Controller credentials stay in-cluster | Runner needs cloud credentials |
+| **Tooling** | Crossplane, ArgoCD, Flux | Atlantis, GitHub Actions, GitLab CI |
+| **Best for** | Kubernetes-native and cloud resource management | Terraform-centric workflows |
+
+Neither model is universally superior. Most mature platforms use push-based pipelines for Terraform-managed infrastructure (where the blast radius of a misfired reconciliation is high) and pull-based reconciliation for Kubernetes workloads (where convergence speed and drift correction matter more).
+
+### Code vs Configuration
+
+One of the most common structural mistakes in IaC is conflating the reusable logic of a module with the environment-specific values that configure it. Separating these two concerns is what makes IaC actually reusable.
+
+*   **Infrastructure code** (modules, libraries) defines *how* a resource is built — the structure, logic, and best-practice defaults. A well-written VPC module knows how to create subnets, route tables, and NAT gateways correctly. It doesn't know whether it's being deployed in dev or prod, or what CIDR range to use.
+*   **Environment configuration** defines *what* to provision in a specific context — the actual CIDR blocks, instance sizes, replica counts, and feature flags for a particular environment. This lives in `tfvars` files, environment-specific directories, or a configuration management system.
+
+| Layer | Contains | Changes when |
+| :--- | :--- | :--- |
+| **Module (code)** | Resource logic, defaults, validation | Architecture changes |
+| **Configuration (vars)** | Environment-specific values | Environment needs change |
+| **State** | Actual deployed resource IDs | Resources are created or destroyed |
+
+**The golden rule:** A module should never contain hardcoded environment names, account IDs, or region-specific values. If you find yourself writing `if env == "prod"` inside a module, the module has absorbed configuration that belongs outside it.
+
+The practical test: can you deploy the same module to a new environment by only changing a `tfvars` file, with zero changes to the module itself? If yes, the separation is correct.
 
 ### Repository Structure Patterns
 
@@ -312,11 +393,11 @@ Terraform workspaces allow one configuration to manage multiple environments by 
 
 | Factor | Workspaces | Directory Separation |
 | :--- | :--- | :--- |
-| State isolation | Partial — all workspaces share one backend path prefix | Complete — each directory has its own state key |
-| Configuration drift between environments | Easy to diverge accidentally (different workspace variables) | Explicit — you can diff directories |
-| Blast radius of a wrong apply | High — workspace selection is manual and easy to mistake | Low — you must `cd` to the target environment |
-| Complexity for beginners | High — workspace concept is non-obvious | Low — directories are intuitive |
-| Suitable for environments with different resource counts | No — `count` with workspace conditionals becomes unmaintainable | Yes |
+| **State isolation** | Partial — all workspaces share one backend path prefix | Complete — each directory has its own state key |
+| **Configuration drift between environments** | Easy to diverge accidentally (different workspace variables) | Explicit — you can diff directories |
+| **Blast radius of a wrong apply** | High — workspace selection is manual and easy to mistake | Low — you must `cd` to the target environment |
+| **Complexity for beginners** | High — workspace concept is non-obvious | Low — directories are intuitive |
+| **Suitable for environments with different resource counts** | No — `count` with workspace conditionals becomes unmaintainable | Yes |
 
 **Recommendation:** Use directory separation for environments. Workspaces are appropriate for ephemeral, identical environments (feature branch testing environments that are structurally identical to each other), not for the production/staging/dev distinction.
 
@@ -324,11 +405,11 @@ Terraform workspaces allow one configuration to manage multiple environments by 
 
 | Factor | Single State | Split State |
 | :--- | :--- | :--- |
-| Plan execution time | Slow — Terraform queries all resources every plan | Fast — each state file is small |
-| Blast radius of a failed apply | High — one broken resource can block all changes | Low — isolated to the component |
-| Cross-component dependency management | Implicit — resources share a namespace | Explicit — remote state references required |
-| Team independence | Low — one state means one queue | High — teams apply to their state independently |
-| Suitable for large resource counts (>500 resources) | No — plans become unusably slow | Yes |
+| **Plan execution time** | Slow — Terraform queries all resources every plan | Fast — each state file is small |
+| **Blast radius of a failed apply** | High — one broken resource can block all changes | Low — isolated to the component |
+| **Cross-component dependency management** | Implicit — resources share a namespace | Explicit — remote state references required |
+| **Team independence** | Low — one state means one queue | High — teams apply to their state independently |
+| **Suitable for large resource counts (>500 resources)** | No — plans become unusably slow | Yes |
 
 **Rule of thumb:** Split state when a single `terraform plan` takes longer than 10 minutes, when more than one team writes to the same configuration, or when you want to apply networking changes independently of compute changes.
 
@@ -366,11 +447,11 @@ The key design question: **how different are your environments from each other?*
 
 | Dimension | Identical Environments | Differentiated Environments |
 | :--- | :--- | :--- |
-| Resource sizing | Same instance types, same counts | Dev uses smaller instances; prod uses HA multi-AZ |
-| Feature flags | Same config | Some features enabled only in prod |
-| Data | Synthetic or anonymized data in dev | Real data in prod (with controls) |
-| Network topology | Same CIDR structure, different CIDRs | Same structure, different addressing |
-| Cost | Expensive to maintain identical staging | Cheaper with sized-down non-prod |
+| **Resource sizing** | Same instance types, same counts | Dev uses smaller instances; prod uses HA multi-AZ |
+| **Feature flags** | Same config | Some features enabled only in prod |
+| **Data** | Synthetic or anonymized data in dev | Real data in prod (with controls) |
+| **Network topology** | Same CIDR structure, different CIDRs | Same structure, different addressing |
+| **Cost** | Expensive to maintain identical staging | Cheaper with sized-down non-prod |
 
 Identical environments give you high fidelity pre-production testing. Differentiated environments are cheaper but can hide environment-specific bugs (the classic "works in dev, breaks in prod" caused by a difference in instance size exposing a memory issue).
 
@@ -422,7 +503,6 @@ This is the strongest isolation model — the production state file is in the pr
 Ephemeral environments are short-lived, on-demand environments created for a specific purpose (feature branch testing, load testing, compliance audit) and destroyed when done. They are distinct from permanent environments (dev, staging, prod).
 
 Ephemeral environment design requirements:
-
 - Must be created and destroyed by CI automatically — no manual steps.
 - Must be structurally identical to staging (same topology, possibly smaller).
 - Must have unique resource naming to avoid collisions with permanent environments.
@@ -449,12 +529,12 @@ The AWS account is the strongest isolation boundary. Use it deliberately.
 
 | Signal | Recommended Isolation |
 | :--- | :--- |
-| Different compliance scope (PCI, HIPAA data) | Dedicated account — different compliance controls, auditable boundary |
-| Different team with no legitimate access to other environments | Dedicated account — access control is cleaner than IAM policy complexity |
-| Different billing and cost allocation requirement | Dedicated account — account-level Cost Explorer filtering is reliable |
-| Blast radius concern (a destroy in this environment must never affect production) | Dedicated account — Terraform state and API access are physically separate |
-| Development sandbox with elevated IAM permissions | Dedicated account — engineers need broad permissions that would be dangerous in shared accounts |
-| Transient or time-bounded project | Consider — account creation is cheap; account closure is a process |
+| **Different compliance scope (PCI, HIPAA data)** | Dedicated account — different compliance controls, auditable boundary |
+| **Different team with no legitimate access to other environments** | Dedicated account — access control is cleaner than IAM policy complexity |
+| **Different billing and cost allocation requirement** | Dedicated account — account-level Cost Explorer filtering is reliable |
+| **Blast radius concern (a destroy in this environment must never affect production)** | Dedicated account — Terraform state and API access are physically separate |
+| **Development sandbox with elevated IAM permissions** | Dedicated account — engineers need broad permissions that would be dangerous in shared accounts |
+| **Transient or time-bounded project** | Consider — account creation is cheap; account closure is a process |
 
 Account proliferation has costs: each account requires baseline infrastructure (CloudTrail, Config, Security Hub enrollment, networking), and managing hundreds of accounts requires Control Tower or equivalent. Do not create accounts reflexively — create them when the isolation benefit justifies the overhead.
 
@@ -513,7 +593,6 @@ data "aws_vpc" "shared" {
 resource "aws_security_group" "app" {
   provider = aws.workload
   vpc_id   = data.aws_vpc.shared.id
-  # ...
 }
 ```
 
@@ -533,7 +612,94 @@ In AWS, hard multi-tenancy (dedicated accounts) is the recommended default for c
 
 ---
 
-## 8. State Management
+## 8. State Management & Blast Radius
+
+### Blast Radius Isolation
+
+Blast radius is the amount of damage a single failure — a bad `terraform apply`, a state corruption, a leaked credential, a misconfigured IAM policy — can cause. Blast radius is a function of how much infrastructure is under one unit of control. The larger the state file or the broader the permissions scope, the larger the blast radius.
+
+**Monolithic state** is the antipattern where all infrastructure — VPC, databases, EKS clusters, DNS, IAM, and application resources — lives in a single Terraform state file managed by a single pipeline with a single set of credentials. This is easy to start with and catastrophic at scale.
+*   A corrupted state file takes down everything.
+*   A single failed resource can block the entire `apply`.
+*   Any engineer with access to the pipeline can affect any resource.
+*   Plan output is enormous and nearly impossible to review safely.
+
+**Decoupled state** splits infrastructure along two axes: environment boundaries and layer boundaries.
+
+*   **Splitting by environment** ensures that a failed deployment in dev cannot affect prod. The prod state file is a separate artifact, managed by a separate pipeline, requiring separate credentials. Dev is the canary; prod is protected.
+*   **Splitting by layer** separates infrastructure by lifecycle and ownership. Core networking (VPCs, Transit Gateways, DNS) changes rarely and requires broad permissions. Application infrastructure (ECS services, RDS instances, Lambda functions) changes frequently and should be deployable without touching the network layer.
+
+A practical layering model:
+
+| Layer | Contents | Change Frequency | Blast Radius |
+| :--- | :--- | :--- | :--- |
+| **Foundation** | Accounts, SCPs, IAM identity | Very rare | Entire organization |
+| **Core Networking** | VPC, TGW, subnets, DNS zones | Rare | All workloads in region |
+| **Shared Services** | Centralized endpoints, security tooling | Occasional | All spoke accounts |
+| **Data** | RDS, ElastiCache, S3 buckets | Moderate | Applications using the data layer |
+| **Compute** | EKS, ECS, Lambda, EC2 | Frequent | Individual workloads |
+| **Application** | Services, tasks, deployments | Very frequent | Single service |
+
+Each layer is independently deployable. A broken application deployment cannot cascade into a network-layer state corruption. A network change can be planned, reviewed, and applied without touching application state.
+
+### Shared State vs Remote State Data Sources
+
+Splitting state into layers creates a new problem: layers need to share information. An EKS cluster needs the VPC ID and subnet IDs from the networking layer. An application deployment needs the RDS endpoint from the data layer. You can't have isolated state files if values need to flow between them.
+
+The wrong answer is copy-pasting values into hardcoded variables. Hardcoded values go stale, cause drift, and break silently when the upstream resource is recreated with a new ID.
+
+The right answer is **remote state data sources** or **Parameter Store / Secrets Manager outputs**.
+
+#### Remote State Data Sources
+
+The producer module writes its outputs to a remote state backend (S3 + DynamoDB lock, Terraform Cloud, etc.). The consumer module reads those outputs using a `terraform_remote_state` data source, referencing the exact backend and key where the producer's state is stored.
+
+```hcl
+data "terraform_remote_state" "networking" {
+  backend = "s3"
+  config = {
+    bucket = "my-tfstate-bucket"
+    key    = "core-networking/terraform.tfstate"
+    region = "ap-southeast-1"
+  }
+}
+
+resource "aws_eks_cluster" "this" {
+  vpc_config {
+    subnet_ids = data.terraform_remote_state.networking.outputs.private_subnet_ids
+  }
+}
+```
+
+The consumer always reads the live, current output from the producer's state. If the networking layer is redeployed and subnet IDs change, the next apply of the compute layer picks up the new values automatically.
+
+#### Parameter Store as an Interface
+
+An alternative pattern is to have the producer write its outputs explicitly to AWS Systems Manager Parameter Store, and have the consumer read from Parameter Store using an `aws_ssm_parameter` data source. This decouples the consumer from knowledge of the producer's state backend and key structure — the only shared contract is the parameter path.
+
+```hcl
+# Producer
+resource "aws_ssm_parameter" "vpc_id" {
+  name  = "/infra/networking/vpc-id"
+  type  = "String"
+  value = aws_vpc.main.id
+}
+
+# Consumer
+data "aws_ssm_parameter" "vpc_id" {
+  name = "/infra/networking/vpc-id"
+}
+```
+
+This pattern is particularly useful in multi-account architectures where the consumer and producer are in different AWS accounts — cross-account remote state access requires careful S3 bucket policy configuration, while cross-account SSM reads are a standard IAM permission.
+
+| Property | Remote State Data Source | Parameter Store |
+| :--- | :--- | :--- |
+| **Coupling** | Consumer knows producer's backend and key | Consumer knows only the parameter path |
+| **Cross-account support** | Requires S3 bucket policy configuration | Standard IAM `ssm:GetParameter` |
+| **Auditability** | State access logged in S3/backend logs | CloudTrail logs every read |
+| **Version history** | Tied to Terraform state versioning | Native SSM parameter versioning |
+| **Best for** | Single-account, tightly coupled layers | Multi-account, loosely coupled layers |
 
 ### State Backend Requirements
 
@@ -606,14 +772,12 @@ s3://org-tfstate/terraform.tfstate
 ### State Splitting Strategy
 
 Split state when:
-
 - A single state exceeds ~300 resources (plans become slow and noisy).
 - Different teams need to apply changes independently without queuing behind each other.
 - Components have different change frequencies (networking changes rarely; application config changes frequently — they should not share state).
 - You want to isolate blast radius (a broken compute apply should not block networking changes).
 
 Split along these natural boundaries (roughly in order of lowest-to-highest change frequency):
-
 - Account bootstrap (IAM roles, account-level Config, CloudTrail) — changes rarely
 - Networking (VPC, subnets, TGW, DNS) — changes infrequently
 - Shared data services (RDS, ElastiCache, MSK) — changes occasionally
@@ -624,27 +788,17 @@ Split along these natural boundaries (roughly in order of lowest-to-highest chan
 
 State corruption is rare but happens. The recovery process depends on the corruption type:
 
-**Scenario 1 — State file is stale (real world diverged from state):**
-Run `terraform refresh` to update state from the real world, then review the plan for unexpected changes. Or use `terraform apply -refresh-only` to update state without making changes.
-
-**Scenario 2 — Resource in state but not in real world (someone deleted it manually):**
-Remove the stale state entry: `terraform state rm <resource_address>`. Then re-apply to recreate it, or import the replacement if it was recreated manually.
-
-**Scenario 3 — Resource in real world but not in state (created outside IaC):**
-Import the resource: `terraform import <resource_address> <real_world_id>`. Review the plan — the resource will show no changes if the configuration matches, or a diff if it needs to be brought into conformance.
-
-**Scenario 4 — State file is corrupted (JSON parse error):**
-Restore the previous version from S3 versioning. Check the S3 version history for the last known-good version and restore it. Then re-evaluate whether recent applies need to be replayed.
-
-**Scenario 5 — State lock is stuck (previous apply failed and left a lock):**
-Verify the lock is genuinely stuck (not an in-progress apply): `terraform force-unlock <lock_id>`. Only force-unlock after confirming no apply is in progress — a concurrent apply on an unlocked state will produce corruption.
+*   **Scenario 1 — State file is stale (real world diverged from state):** Run `terraform refresh` to update state from the real world, then review the plan for unexpected changes. Or use `terraform apply -refresh-only` to update state without making changes.
+*   **Scenario 2 — Resource in state but not in real world (deleted manually):** Remove the stale state entry: `terraform state rm <resource_address>`. Then re-apply to recreate it, or import the replacement if it was recreated manually.
+*   **Scenario 3 — Resource in real world but not in state (created outside IaC):** Import the resource: `terraform import <resource_address> <real_world_id>`. Review the plan — the resource will show no changes if the configuration matches, or a diff if it needs to be brought into conformance.
+*   **Scenario 4 — State file is corrupted (JSON parse error):** Restore the previous version from S3 versioning. Check the S3 version history for the last known-good version and restore it. Then re-evaluate whether recent applies need to be replayed.
+*   **Scenario 5 — State lock is stuck (failed apply left a lock):** Verify the lock is genuinely stuck (not an in-progress apply): `terraform force-unlock <lock_id>`. Only force-unlock after confirming no apply is in progress — a concurrent apply on an unlocked state will produce corruption.
 
 ### Sensitive Data in State
 
 Terraform state files contain the values of all resource attributes — including secrets. An RDS instance's master password, a generated private key, or an API secret written to a resource attribute will appear in plaintext in the state file.
 
 Mitigations:
-
 - Use SSE-KMS encryption on the state bucket — state is encrypted at rest.
 - Use IAM policies to restrict state file read access to CI roles — humans should not have direct S3 GetObject permission on the state bucket in production.
 - Store secrets outside Terraform where possible — reference them via data sources (`aws_secretsmanager_secret_version`) rather than managing them as Terraform resources.
@@ -652,140 +806,7 @@ Mitigations:
 
 ---
 
-## 9. Delivery Patterns
-
-### The Three Models of IaC Delivery
-
-| Model | Who Triggers Apply | Where Apply Runs | Best For |
-| :--- | :--- | :--- | :--- |
-| **Local apply** | Engineer, manually | Developer laptop | Bootstrapping; break-glass; module development |
-| **CI-triggered apply** | Merge to main branch | CI runner (GitHub Actions, GitLab CI) | Team-scale; standard automation |
-| **GitOps / PR automation** | PR open/update (plan); merge (apply) | Atlantis, Spacelift, env0 | Organizations wanting pull-request-centric workflow; multi-team |
-
-**Local apply is acceptable only in the bootstrapping phase or for emergency access.** Once a team is operational, applies from laptops mean: no audit trail, no review step, inconsistent tool versions, and "works on my machine" state divergence. Enforce CI-only apply by removing individual IAM permissions to apply and granting them only to the CI execution role.
-
-### CI Pipeline Structure for Terraform
-
-A robust Terraform CI pipeline has distinct stages with clear gates:
-
-```
-PR Opened / Updated
-        │
-        ▼
-  [terraform fmt]  ← Fail fast on formatting
-        │
-        ▼
-  [terraform validate]  ← Syntax + provider schema validation
-        │
-        ▼
-  [terraform plan]  ← Generate plan, post as PR comment
-        │
-        ▼
-  [policy check]  ← OPA/Sentinel evaluates the plan
-        │
-        ▼
-  [peer review]  ← Human reviews plan output in PR
-        │
-  (merge to main)
-        │
-        ▼
-  [terraform apply]  ← Applies against target environment
-        │
-        ▼
-  [smoke test]  ← Validates applied resources are functional
-```
-
-The plan output should be posted as a PR comment so reviewers see exactly what will change before approving. The policy check gate is optional but powerful — it allows automated enforcement of rules like "no security group with `0.0.0.0/0` ingress on port 22."
-
-### Atlantis vs CI-Native (GitHub Actions) Trade-offs
-
-| Factor | Atlantis | GitHub Actions / GitLab CI |
-| :--- | :--- | :--- |
-| Plan on PR | Native — `atlantis plan` comment | Custom workflow required |
-| Locking | Per-repository lock prevents concurrent applies | Requires DynamoDB + custom logic |
-| State access | Atlantis server has persistent credentials | Runner has ephemeral credentials via OIDC |
-| Operational overhead | You run and maintain the Atlantis server | Managed by GitHub/GitLab |
-| Cost | Server infrastructure cost | CI minutes cost (can be significant for large plans) |
-| Multi-repo support | Strong — designed for it | Custom workflow per repo or reusable workflow |
-| Audit trail | Atlantis logs + VCS PR history | CI run logs + VCS PR history |
-
-Atlantis is compelling for teams with many Terraform repositories and complex PR-based workflows. GitHub Actions with OIDC authentication is simpler for teams already heavily invested in GitHub and with fewer repositories.
-
-### OIDC Authentication for CI Runners
-
-Never store long-lived AWS credentials in CI environment variables. Use OIDC federation to grant CI runners temporary, scoped credentials:
-
-```hcl
-# IAM OIDC provider for GitHub Actions
-resource "aws_iam_openid_connect_provider" "github" {
-  url = "https://token.actions.githubusercontent.com"
-
-  client_id_list = ["sts.amazonaws.com"]
-
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1"
-  ]
-}
-
-resource "aws_iam_role" "terraform_ci" {
-  name = "TerraformCI"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Federated = aws_iam_openid_connect_provider.github.arn
-      }
-      Action = "sts:AssumeRoleWithWebIdentity"
-      Condition = {
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:org/infra-repo:*"
-        }
-        StringEquals = {
-          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        }
-      }
-    }]
-  })
-}
-```
-
-The CI workflow assumes this role using the GitHub Actions OIDC token — no static credentials are stored anywhere. The role has only the permissions needed to read/write state and manage the target infrastructure.
-
-### Environment Promotion Gates
-
-Applying to production should never happen automatically on merge. Production applies require:
-
-- A passing apply in staging (or equivalent pre-production environment).
-- A manual approval step in the pipeline.
-- A time-bounded deployment window (if you have change management requirements).
-
-```yaml
-# GitHub Actions — manual approval gate for production
-jobs:
-  apply-staging:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Terraform Apply (Staging)
-        run: terraform apply -auto-approve -var-file=staging.tfvars
-
-  apply-production:
-    needs: apply-staging
-    runs-on: ubuntu-latest
-    environment: production   # GitHub Environment with required reviewers
-    steps:
-      - uses: actions/checkout@v4
-      - name: Terraform Apply (Production)
-        run: terraform apply -auto-approve -var-file=production.tfvars
-```
-
-The `environment: production` in GitHub Actions triggers a required reviewer check — a named human must approve before the production apply runs.
-
----
-
-## 10. Governance & Standards
+## 9. Governance & Standards
 
 ### Policy as Code
 
@@ -823,19 +844,15 @@ conftest test tfplan.json --policy policy/
 
 A module registry without governance becomes a graveyard of inconsistent, unmaintained modules. Establish:
 
-**Module ownership:** Every published module has a named owner (team, not individual). The owner is responsible for security patches, breaking change management, and consumer communication.
-
-**Versioning discipline:** Use semantic versioning. Breaking changes increment the major version. New features increment minor. Bug fixes increment patch. Communicate breaking changes in a CHANGELOG before publishing the major bump.
-
-**Deprecation process:** Modules are not deleted — they are deprecated. A deprecated module gets a prominent deprecation notice in its README and a `deprecated` tag in the registry. Consumers are given a migration path and a sunset date.
-
-**Required module elements:**
-
-- `README.md` with description, usage example, inputs, and outputs.
-- `variables.tf` with description and validation for every variable.
-- `outputs.tf` with description for every output.
-- `versions.tf` with required Terraform and provider version constraints.
-- `examples/` directory with at least one working example.
+*   **Module ownership:** Every published module has a named owner (team, not individual). The owner is responsible for security patches, breaking change management, and consumer communication.
+*   **Versioning discipline:** Use semantic versioning. Breaking changes increment the major version. New features increment minor. Bug fixes increment patch. Communicate breaking changes in a CHANGELOG before publishing the major bump.
+*   **Deprecation process:** Modules are not deleted — they are deprecated. A deprecated module gets a prominent deprecation notice in its README and a `deprecated` tag in the registry. Consumers are given a migration path and a sunset date.
+*   **Required module elements:**
+    *   `README.md` with description, usage example, inputs, and outputs.
+    *   `variables.tf` with description and validation for every variable.
+    *   `outputs.tf` with description for every output.
+    *   `versions.tf` with required Terraform and provider version constraints.
+    *   `examples/` directory with at least one working example.
 
 ### Naming Convention Standards
 
@@ -845,18 +862,18 @@ Recommended naming pattern: `{org}-{env}-{region}-{component}-{suffix}`
 
 | Resource | Example | Notes |
 | :--- | :--- | :--- |
-| VPC | `org-prod-apse1-main-vpc` | Region abbreviated: `apse1` for `ap-southeast-1` |
-| Subnet | `org-prod-apse1-private-1a-snet` | AZ and tier in name |
-| Security Group | `org-prod-web-alb-sg` | Tier and purpose |
-| S3 Bucket | `org-prod-apse1-app-data-{account_id}` | Account ID suffix for global uniqueness |
-| IAM Role | `org-prod-eks-node-role` | Service and purpose |
-| EKS Cluster | `org-prod-apse1-eks` | Env and region required for multi-cluster support |
+| **VPC** | `org-prod-apse1-main-vpc` | Region abbreviated: `apse1` for `ap-southeast-1` |
+| **Subnet** | `org-prod-apse1-private-1a-snet` | AZ and tier in name |
+| **Security Group** | `org-prod-web-alb-sg` | Tier and purpose |
+| **S3 Bucket** | `org-prod-apse1-app-data-{account_id}` | Account ID suffix for global uniqueness |
+| **IAM Role** | `org-prod-eks-node-role` | Service and purpose |
+| **EKS Cluster** | `org-prod-apse1-eks` | Env and region required for multi-cluster support |
 
 Enforce naming via Terraform variable validation and OPA policies. A plan that creates an S3 bucket without the organization prefix should fail the policy check automatically.
 
 ---
 
-## 11. Operating IaC at Scale
+## 10. Operating IaC at Scale
 
 ### Drift Detection
 
@@ -866,10 +883,10 @@ Detection approaches:
 
 | Approach | Frequency | Tool | Coverage |
 | :--- | :--- | :--- | :--- |
-| `terraform plan` on schedule | Hourly or daily | CI cron job | IaC-managed resources only |
-| AWS Config managed rules | Continuous | AWS Config | Any resource, with or without IaC |
-| AWS Security Hub standards | Continuous | Security Hub | Security-focused config drift |
-| Custom CloudWatch Events | Real-time | EventBridge + Lambda | Specific resources you define |
+| **`terraform plan` on schedule** | Hourly or daily | CI cron job | IaC-managed resources only |
+| **AWS Config managed rules** | Continuous | AWS Config | Any resource, with or without IaC |
+| **AWS Security Hub standards** | Continuous | Security Hub | Security-focused config drift |
+| **Custom CloudWatch Events** | Real-time | EventBridge + Lambda | Specific resources you define |
 
 A scheduled `terraform plan` that runs nightly and alerts on non-empty plans is the minimum viable drift detection for IaC-managed resources. Post the plan output to a Slack channel or create a ticket for every non-zero plan.
 
@@ -890,18 +907,16 @@ jobs:
         run: |
           terraform init
           terraform plan -detailed-exitcode -out=tfplan
-        continue-on-error: true  # exit code 2 means changes detected
+        continue-on-error: true
       - name: Alert on drift
         if: steps.plan.outputs.exitcode == '2'
         run: |
-          # Post plan output to Slack or create incident ticket
           echo "Drift detected — plan has changes"
 ```
 
 ### Observability for Infrastructure Changes
 
 Infrastructure changes should be as observable as application deployments. Every Terraform apply should emit:
-
 - Who triggered it (OIDC identity or CI runner identity).
 - What changed (plan summary: N resources added, N modified, N destroyed).
 - When it ran and how long it took.
@@ -916,7 +931,6 @@ Correlate infrastructure changes with application monitoring. If a Terraform app
 Terraform and provider versions are dependencies that require active management. Letting them drift causes painful upgrade gaps.
 
 Strategy:
-
 - Pin all provider versions in `versions.tf` with `~>` (minor range) to receive patch fixes automatically while blocking major version changes.
 - Run Dependabot or Renovate on the Terraform configuration repository to open PRs for version updates automatically.
 - Upgrade one minor version at a time. Do not jump from Terraform 1.3 to 1.9 in one step — run the upgrade in test environments first and validate no resource re-creation is planned.
@@ -928,28 +942,27 @@ Toil is operational work that is manual, repetitive, and does not provide lastin
 
 | Toil Source | Reduction Approach |
 | :--- | :--- |
-| Running `terraform init` across many directories | Terragrunt `run-all` or a CI wrapper script |
-| Updating a module version across 50 consumers | Renovate bot with auto-merge for patch versions |
-| Generating boilerplate for new modules | Cookiecutter or Yeoman template with standard structure |
-| Manually creating backend configuration per new environment | Terragrunt `remote_state` block with auto-creation |
-| Finding which module manages a given resource | Consistent naming conventions + searchable state key design |
-| Reviewing plans with hundreds of resources | State splitting so plans are scoped and readable |
+| **Running `terraform init` across directories** | Terragrunt `run-all` or a CI wrapper script |
+| **Updating a module version across 50 consumers** | Renovate bot with auto-merge for patch versions |
+| **Generating boilerplate for new modules** | Cookiecutter or Yeoman template with standard structure |
+| **Manually creating backend config per env** | Terragrunt `remote_state` block with auto-creation |
+| **Finding which module manages a given resource** | Consistent naming conventions + searchable state key design |
+| **Reviewing plans with hundreds of resources** | State splitting so plans are scoped and readable |
 
 ---
 
-## 12. Anti-Patterns
+## 11. Common Anti-Patterns
 
 ### Anti-Pattern: The God Module
 
 A module that manages everything — VPC, subnets, security groups, EC2 instances, RDS databases, S3 buckets, IAM roles — in a single Terraform configuration. God modules feel convenient early because one `terraform apply` provisions an entire environment. They become unmanageable quickly because:
-
 - Plans are enormous and unreadable.
 - A change to a security group requires a plan that touches 200 resources.
 - Blast radius is the entire environment.
 - Team members queue behind each other for every apply.
 - The state file becomes a corruption risk — one failed apply leaves the entire environment in an unknown state.
 
-**Fix:** Split by lifecycle — resources that change together, own together. Networking, compute, and application configuration have different change frequencies and different owners.
+**Fix:** Split by lifecycle — resources that change together, own together. Networking, compute, and data services have different change frequencies and different owners.
 
 ### Anti-Pattern: Snowflake Environments
 
@@ -968,7 +981,6 @@ Long-lived AWS access keys stored in CI environment variables, passed between en
 ### Anti-Pattern: Copy-Paste Module Consumption
 
 Instead of using a versioned module, an engineer copies the module code directly into their configuration and modifies it. This feels efficient in the short term and creates a maintenance nightmare:
-
 - Security patches to the module do not reach the copy.
 - Bug fixes must be re-applied manually to each copy.
 - The copies diverge — every "environment" becomes slightly different.
@@ -979,7 +991,6 @@ Instead of using a versioned module, an engineer copies the module code directly
 ### Anti-Pattern: `terraform apply` in Production from a Laptop
 
 An engineer, under pressure during an incident, runs `terraform apply` from their laptop against the production state. Problems:
-
 - No PR review — no second pair of eyes on the change.
 - No CI gate — no policy checks, no automated validation.
 - The laptop's Terraform and provider versions may differ from the CI pipeline.
@@ -1012,67 +1023,67 @@ Without a version constraint, `terraform init` picks up the latest published ver
 
 ---
 
-## 13. Architecture Decision Cheatsheet
+## 12. Architecture Decision Cheatsheet
 
 ### Repository Pattern Selection
 
 | Situation | Pattern |
 | :--- | :--- |
-| Single team, < 5 engineers, < 3 accounts | Monorepo, flat structure |
-| Multiple teams, shared infrastructure | Monorepo with team directories and shared modules |
-| Many teams, strict access isolation | Polyrepo with published module registry |
-| Enterprise scale, compliance separation | Polyrepo + module registry + config repo |
+| **Single team, < 5 engineers, < 3 accounts** | Monorepo, flat structure |
+| **Multiple teams, shared infrastructure** | Monorepo with team directories and shared modules |
+| **Many teams, strict access isolation** | Polyrepo with published module registry |
+| **Enterprise scale, compliance separation** | Polyrepo + module registry + config repo |
 
 ### State Split Boundaries
 
 | Component | Split State? | Rationale |
 | :--- | :--- | :--- |
-| Account bootstrap (IAM, Config, CloudTrail) | Yes — always separate | Changes rarely; high blast radius; often requires elevated permissions |
-| Networking (VPC, subnets, TGW) | Yes — always separate | Changes rarely; shared by multiple teams; must not be blocked by app changes |
-| Shared data services (RDS, MSK, ElastiCache) | Yes | Different lifecycle from compute; data engineers may own this layer |
-| Compute platform (EKS, ECS clusters) | Yes | Different change frequency from applications |
-| Application configuration (services, functions) | Yes — per application or team | High change frequency; team-owned; must apply independently |
-| DNS records | Yes — often separate | Very high change frequency; application teams may need self-service |
+| **Account bootstrap (IAM, Config, CloudTrail)** | Yes — always separate | Changes rarely; high blast radius; often requires elevated permissions |
+| **Networking (VPC, subnets, TGW)** | Yes — always separate | Changes rarely; shared by multiple teams; must not be blocked by app changes |
+| **Shared data services (RDS, MSK, ElastiCache)** | Yes | Different lifecycle from compute; data engineers may own this layer |
+| **Compute platform (EKS, ECS clusters)** | Yes | Different change frequency from applications |
+| **Application configuration (services, functions)** | Yes — per application or team | High change frequency; team-owned; must apply independently |
+| **DNS records** | Yes — often separate | Very high change frequency; application teams may need self-service |
 
 ### Secrets Handling Decision Matrix
 
 | Scenario | Approach |
 | :--- | :--- |
-| Database password needed by RDS | Generate with `random_password`; store in Secrets Manager; pass ARN to application |
-| API key from external service | Store in Secrets Manager manually; reference via `aws_secretsmanager_secret_version` data source in Terraform; never in `.tf` files |
-| TLS certificate | Use ACM (managed by AWS); or import via `aws_acm_certificate` with cert stored in Secrets Manager |
-| SSH key pair | Generate externally; import public key only via `aws_key_pair`; never the private key |
-| Terraform variable that is a secret | Mark `sensitive = true`; pass via CI environment variable, never in `tfvars` committed to repo |
+| **Database password needed by RDS** | Generate with `random_password`; store in Secrets Manager; pass ARN to application |
+| **API key from external service** | Store in Secrets Manager manually; reference via `aws_secretsmanager_secret_version` data source in Terraform; never in `.tf` files |
+| **TLS certificate** | Use ACM (managed by AWS); or import via `aws_acm_certificate` with cert stored in Secrets Manager |
+| **SSH key pair** | Generate externally; import public key only via `aws_key_pair`; never the private key |
+| **Terraform variable that is a secret** | Mark `sensitive = true`; pass via CI environment variable, never in `tfvars` committed to repo |
 
 ### Module Abstraction Level Decision
 
 | Use Case | Correct Abstraction |
 | :--- | :--- |
-| A new team needs a VPC | Composition module — they should not configure individual subnets and route tables |
-| A team needs an S3 bucket with org security defaults | Thin wrapper module over community module |
-| A team needs a Lambda function that does not fit any existing pattern | Root module using community modules directly; evaluate whether to generalize afterward |
-| A capability that five teams all need with slight variations | Resource module with well-designed input variables to handle the variation |
-| A one-off resource that only one team uses | Direct resource in their root module; do not over-abstract |
+| **A new team needs a VPC** | Composition module — they should not configure subnets and route tables |
+| **A team needs an S3 bucket with defaults** | Thin wrapper module over community module |
+| **A team needs a Lambda function with one-off needs** | Root module using community modules directly; evaluate generalization later |
+| **A capability that five teams all need with variation** | Resource module with well-designed input variables to handle the variation |
+| **A one-off resource that only one team uses** | Direct resource in their root module; do not over-abstract |
 
 ### CI/CD Apply Strategy
 
 | Org Size | Recommended Pipeline | Reason |
 | :--- | :--- | :--- |
-| Small (< 5 infra engineers) | GitHub Actions; plan on PR; manual apply on merge | Simple; low overhead |
-| Medium (5–20 infra engineers) | Atlantis or GitHub Actions with environment gates | PR-centric; prevents concurrent applies |
-| Large (> 20 infra engineers) | Spacelift, env0, or Terraform Cloud | Policy enforcement, drift detection, audit trail at enterprise scale |
-| Multi-team, strict governance | Terraform Cloud + Sentinel policies | Native policy integration with Terraform plan graph |
+| **Small (< 5 infra engineers)** | GitHub Actions; plan on PR; manual apply on merge | Simple; low overhead |
+| **Medium (5–20 infra engineers)** | Atlantis or GitHub Actions with environment gates | PR-centric; prevents concurrent applies |
+| **Large (> 20 infra engineers)** | Spacelift, env0, or Terraform Cloud | Policy enforcement, drift detection, audit trail at enterprise scale |
+| **Multi-team, strict governance** | Terraform Cloud + Sentinel policies | Native policy integration with Terraform plan graph |
 
 ### Drift Response Matrix
 
 | Drift Type | Discovery | Response |
 | :--- | :--- | :--- |
-| Manual change by engineer (unintentional) | Nightly plan shows diff | Revert via Terraform apply; post-incident if production |
-| Manual change by engineer (intentional fix) | Nightly plan shows diff | Codify the change in IaC; apply to make state match; document why |
-| AWS-initiated change to managed service | Nightly plan shows diff | Evaluate: if AWS changed a default, update IaC to match or override explicitly |
-| Drift caused by another IaC stack | Ownership conflict discovered in plan | Resolve ownership; one stack removes the resource from its state; the owning stack manages it |
-| Drift undetectable by Terraform (in-instance config) | AWS Config or custom check | Use Systems Manager State Manager or Ansible to enforce instance-level config |
+| **Manual change by engineer (unintentional)** | Nightly plan shows diff | Revert via Terraform apply; post-incident if production |
+| **Manual change by engineer (intentional fix)** | Nightly plan shows diff | Codify the change in IaC; apply to make state match; document why |
+| **AWS-initiated change to managed service** | Nightly plan shows diff | Evaluate: if AWS changed a default, update IaC to match or override explicitly |
+| **Drift caused by another IaC stack** | Ownership conflict in plan | Resolve ownership; one stack removes resource from state; owner manages it |
+| **Drift undetectable by Terraform** | AWS Config or custom check | Use Systems Manager State Manager or Ansible to enforce config |
 
 ---
 
-*Last updated: 2025-Q2 | Primary toolchain: Terraform (OpenTofu) + Terragrunt + Atlantis | Registry: Private Terraform registry | Policy engine: OPA + Conftest | CI: GitHub Actions with OIDC | State backend: S3 + DynamoDB*
+*Last updated: 2026-Q2 | Primary toolchain: Terraform (OpenTofu) + Terragrunt + Atlantis | Registry: Private Terraform registry | Policy engine: OPA + Conftest | CI: GitHub Actions with OIDC | State backend: S3 + DynamoDB*

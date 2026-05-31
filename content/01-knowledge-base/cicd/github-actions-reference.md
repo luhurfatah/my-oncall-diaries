@@ -1,18 +1,16 @@
 # GitHub Actions — CI/CD Pipeline Reference
 
-Enterprise reference pattern for a secure, high-performance GitHub Actions pipeline. Covers trigger architecture, parallel job design, OIDC-based cloud authentication, image scanning, and a staged deployment model with production approval gates. Targets platform and DevOps engineers building or auditing CI/CD pipelines on GitHub Actions with AWS as the cloud provider.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Pipeline Architecture & Mental Model](#1-pipeline-architecture--mental-model) | How the two triggers (PR vs. push to main) create a clean separation between validation and deployment. |
+| **01** | [Pipeline Architecture & Mental Model](#1-pipeline-architecture-mental-model) | How the two triggers (PR vs. push to main) create a clean separation between validation and deployment. |
 | **02** | [Security Design](#2-security-design) | OIDC authentication, scoped permissions, blast radius isolation, and why static keys are an anti-pattern. |
-| **03** | [Job Structure & Parallelism](#3-job-structure--parallelism) | How `needs` chains create a directed graph, which jobs run in parallel, and where the quality gate sits. |
+| **03** | [Job Structure & Parallelism](#3-job-structure-parallelism) | How `needs` chains create a directed graph, which jobs run in parallel, and where the quality gate sits. |
 | **04** | [Full Pipeline Reference](#4-full-pipeline-reference) | The complete annotated `.github/workflows/pipeline.yml` for direct use or adaptation. |
 | **05** | [Deployment Strategy](#5-deployment-strategy) | Staging-first rollout, smoke tests, production approval gates, and Helm atomic deploys. |
 | **06** | [Performance Optimizations](#6-performance-optimizations) | Dependency caching, Docker layer caching, and concurrency cancellation — and why each one matters. |
-| **07** | [Operational Rules & Common Failures](#7-operational-rules--common-failures) | The non-obvious failure modes that surface in production pipelines and how to prevent them. |
+| **07** | [Operational Rules & Common Failures](#7-operational-rules-common-failures) | The non-obvious failure modes that surface in production pipelines and how to prevent them. |
 
 ---
 

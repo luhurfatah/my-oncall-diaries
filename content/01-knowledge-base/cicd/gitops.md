@@ -1,25 +1,23 @@
 # GitOps — Git as the Source of Truth
 
-Git said deploy. Git said rollback. Git said that manual kubectl apply you did at 2am didn't happen. The definitive reference for GitOps principles, Argo CD, Flux CD, Argo Rollouts, Argo Workflows, secrets management, multi-cluster topology, drift detection, and everything else Git has opinions about.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Core Concepts & Mental Model](#1-core-concepts--mental-model) | What GitOps is, the four principles, pull vs push, and the reconciliation loop. |
+| **01** | [Core Concepts & Mental Model](#1-core-concepts-mental-model) | What GitOps is, the four principles, pull vs push, and the reconciliation loop. |
 | **02** | [Repository Design Patterns](#2-repository-design-patterns) | Monorepo, polyrepo, infra+app split, and app-of-apps — trade-offs and when to use each. |
 | **03** | [Argo CD Reference](#3-argo-cd-reference) | Architecture, Application, AppProject, hub-and-spoke multi-cluster, and annotated manifests. |
 | **04** | [Flux CD Reference](#4-flux-cd-reference) | Architecture, GitRepository, Kustomization, HelmRelease, image automation, and multi-tenancy. |
 | **05** | [GitOps with Helm](#5-gitops-with-helm) | HelmRelease patterns, values management, chart versioning strategy, and Helm vs raw manifests. |
 | **06** | [GitOps with Kustomize](#6-gitops-with-kustomize) | Overlay model, base + environment pattern, components, and Kustomize vs Helm decision guide. |
-| **07** | [Progressive Delivery — Argo Rollouts](#7-progressive-delivery--argo-rollouts) | Canary and blue/green via Argo Rollouts, AnalysisTemplate, traffic routing integration. |
+| **07** | [Progressive Delivery — Argo Rollouts](#7-progressive-delivery-argo-rollouts) | Canary and blue/green via Argo Rollouts, AnalysisTemplate, traffic routing integration. |
 | **08** | [Argo Workflows](#8-argo-workflows) | DAG and steps-based pipelines, CI integration, and GitOps promotion workflows. |
 | **09** | [Secrets Management](#9-secrets-management) | SOPS, External Secrets Operator, Vault Agent — comparison, patterns, and annotated configs. |
 | **10** | [Multi-Cluster Management](#10-multi-cluster-management) | Hub-and-spoke topology, cluster registration, fleet management patterns. |
-| **11** | [RBAC & Multi-Tenancy](#11-rbac--multi-tenancy) | AppProject isolation, Flux tenancy model, team-scoped access patterns. |
-| **12** | [Drift Detection & Reconciliation](#12-drift-detection--reconciliation) | What drift is, self-heal behavior, when to allow manual changes, and audit patterns. |
+| **11** | [RBAC & Multi-Tenancy](#11-rbac-multi-tenancy) | AppProject isolation, Flux tenancy model, team-scoped access patterns. |
+| **12** | [Drift Detection & Reconciliation](#12-drift-detection-reconciliation) | What drift is, self-heal behavior, when to allow manual changes, and audit patterns. |
 | **13** | [Disaster Recovery Patterns](#13-disaster-recovery-patterns) | Cluster rebuild from Git, state recovery, RTO targets, and DR runbook structure. |
-| **14** | [Anti-Patterns & Failure Modes](#14-anti-patterns--failure-modes) | The most common GitOps mistakes and what they cost in production. |
+| **14** | [Anti-Patterns & Failure Modes](#14-anti-patterns-failure-modes) | The most common GitOps mistakes and what they cost in production. |
 
 ---
 

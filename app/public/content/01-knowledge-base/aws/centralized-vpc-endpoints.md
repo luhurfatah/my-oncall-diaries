@@ -1,7 +1,5 @@
 # Centralized VPC Endpoints & Private DNS Resolution
 
-Conceptual deep-dive into centralizing AWS VPC Interface and Gateway Endpoints inside a shared-services hub VPC. Covers endpoint types, Private Hosted Zone (PHZ) sharing via Route 53 Resolver, DNS resolution flow, and the architectural trade-offs of hub-and-spoke endpoint consolidation in a Landing Zone.  
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -9,11 +7,11 @@ Conceptual deep-dive into centralizing AWS VPC Interface and Gateway Endpoints i
 | **01** | [Why Centralize VPC Endpoints?](#1-why-centralize-vpc-endpoints) | The cost and operational problem that centralization solves. |
 | **02** | [Endpoint Types: Gateway vs Interface](#2-endpoint-types-gateway-vs-interface) | Core distinctions, routing mechanics, and where each type lives in the architecture. |
 | **03** | [The Centralized Hub Architecture](#3-the-centralized-hub-architecture) | Shared-services VPC design, TGW attachment, and traffic flow. |
-| **04** | [Private DNS & PHZ Sharing](#4-private-dns--phz-sharing) | How Route 53 Private Hosted Zones are associated across accounts, and why it is non-trivial. |
+| **04** | [Private DNS & PHZ Sharing](#4-private-dns-phz-sharing) | How Route 53 Private Hosted Zones are associated across accounts, and why it is non-trivial. |
 | **05** | [DNS Resolution Flow End-to-End](#5-dns-resolution-flow-end-to-end) | Step-by-step DNS lookup path from a spoke workload to the endpoint. |
-| **06** | [Route 53 Resolver: Inbound & Outbound Rules](#6-route-53-resolver-inbound--outbound-rules) | Where Resolver endpoints live, and the forwarding rule design for spoke accounts. |
-| **07** | [Security Controls & Endpoint Policies](#7-security-controls--endpoint-policies) | Endpoint-level resource policies, SCPs, and network-layer controls. |
-| **08** | [Operational Considerations & Trade-offs](#8-operational-considerations--trade-offs) | Availability, blast radius, latency, and when not to centralize. |
+| **06** | [Route 53 Resolver: Inbound & Outbound Rules](#6-route-53-resolver-inbound-outbound-rules) | Where Resolver endpoints live, and the forwarding rule design for spoke accounts. |
+| **07** | [Security Controls & Endpoint Policies](#7-security-controls-endpoint-policies) | Endpoint-level resource policies, SCPs, and network-layer controls. |
+| **08** | [Operational Considerations & Trade-offs](#8-operational-considerations-trade-offs) | Availability, blast radius, latency, and when not to centralize. |
 
 ---
 

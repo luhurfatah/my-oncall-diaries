@@ -1,20 +1,18 @@
 # AWS Well-Architected Framework — Production Reference
 
-All six pillars of the AWS Well-Architected Framework with production patterns, trade-off analysis, anti-patterns, and review process guidance. Written for architecture design decisions, WAF Tool workload reviews, and team onboarding. AWS-primary, but principles are cloud-agnostic.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [WAF Overview & Review Process](#1-waf-overview--review-process) | Core pillars of the WAF, review timing, common pitfalls, and risk-based tiering. |
+| **01** | [WAF Overview & Review Process](#1-waf-overview-review-process) | Core pillars of the WAF, review timing, common pitfalls, and risk-based tiering. |
 | **02** | [Operational Excellence](#2-operational-excellence) | Runbook automation, CodeDeploy canary structures, and structured JSON logs. |
 | **03** | [Security](#3-security) | IAM Access Analyzer configurations, boundary architectures, and encryption rules. |
 | **04** | [Reliability](#4-reliability) | Availability target scales, RDS Multi-AZ patterns, and automated backup drills. |
 | **05** | [Performance Efficiency](#5-performance-efficiency) | Compute matrices (Graviton3), caching strategies, and DynamoDB scaling. |
 | **06** | [Cost Optimization](#6-cost-optimization) | Committed spend (Savings Plans), spot instances, and S3 lifecycle configurations. |
 | **07** | [Sustainability](#7-sustainability) | Energy footprint matching, Graviton gains, and scheduled scaling models. |
-| **08** | [Pillar Tensions & Trade-off Navigation](#8-pillar-tensions--trade-off-navigation) | Balancing cost vs reliability, security vs latency, and operation vs safety. |
-| **09** | [AWS Well-Architected Tool — Practical Usage](#9-aws-well-architected-tool--practical-usage) | Setting milestones, custom organizational lenses, and facilitation guidelines. |
+| **08** | [Pillar Tensions & Trade-off Navigation](#8-pillar-tensions-trade-off-navigation) | Balancing cost vs reliability, security vs latency, and operation vs safety. |
+| **09** | [AWS Well-Architected Tool — Practical Usage](#9-aws-well-architected-tool-practical-usage) | Setting milestones, custom organizational lenses, and facilitation guidelines. |
 
 ---
 

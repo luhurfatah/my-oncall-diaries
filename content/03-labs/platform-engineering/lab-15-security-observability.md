@@ -1,8 +1,5 @@
 # Lab 15 — Production-Ready Platform: Security, Observability & Multi-Tenancy
 
-> **Difficulty**: Advanced | **Duration**: 3 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -27,25 +24,29 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture — Production Considerations
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 PRODUCTION PLATFORM                         │
-│                                                             │
-│  Security        Observability      Governance              │
-│  ─────────       ─────────────      ──────────              │
-│  • RBAC          • Prometheus       • Resource Quotas       │
-│  • NetworkPol    • Grafana          • Cost Tags             │
-│  • SecretMgmt    • Alerting         • Policy Enforcement    │
-│  • Audit Logs    • Dashboards       • Compliance Checks     │
-│  • mTLS          • SLOs/SLIs        • Change Management     │
-│                                                             │
-│  Multi-Tenancy   High Availability  Developer Experience    │
-│  ──────────────  ─────────────────  ────────────────────    │
-│  • Team Spaces   • Multi-cluster    • Fast provisioning     │
-│  • Isolation     • DR/Backup        • Self-service          │
-│  • Billing       • Auto-scaling     • Documentation         │
-└─────────────────────────────────────────────────────────────┘
-```
+### 🔒 Security
+- Strict **RBAC** models limiting namespaces.
+- **Network Policies** isolating team environments.
+- Automated **Secret Management** (Vault + External Secrets Operator).
+- Detailed **Audit Logs** and **mTLS** for inter-service communication.
+
+### 📊 Observability
+- Cluster-wide **Prometheus** metrics collection.
+- Curated **Grafana** visualization dashboards.
+- Dynamic slack/mail **Alerting** configurations.
+- Actionable service **SLOs & SLIs**.
+
+### ⚖️ Governance
+- Strict namespace **Resource Quotas**.
+- Mandated **Cost Tags** for department billing.
+- Continuous **Policy Enforcement** (OPA/Kyverno).
+- Standardized **Compliance Checks** and change gates.
+
+### 👥 Multi-Tenancy & Operations
+- Logical **Team Spaces** isolation.
+- Multi-cluster **High Availability** setups.
+- Automated **Backup/DR** pipelines.
+- Transparent **FinOps Billing** allocations.
 
 ---
 

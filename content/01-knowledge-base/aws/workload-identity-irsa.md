@@ -1,17 +1,15 @@
 # Workload Identity & IRSA on EKS
 
-Conceptual deep-dive into IAM Roles for Service Accounts (IRSA) on Amazon EKS. Covers the OIDC token-exchange foundation, EKS OIDC provider setup, Kubernetes service account identity binding, credential injection mechanics, trust policy design and hardening, cross-account role assumption, and a comparison with EKS Pod Identity.  
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
 | **01** | [The Problem: Static Credentials in Pods](#1-the-problem-static-credentials-in-pods) | Why long-lived IAM credentials in pods are an unacceptable risk at scale. |
-| **02** | [The Foundation: OIDC & STS Token Exchange](#2-the-foundation-oidc--sts-token-exchange) | How OIDC federation works, what a web identity token contains, and how STS validates it. |
+| **02** | [The Foundation: OIDC & STS Token Exchange](#2-the-foundation-oidc-sts-token-exchange) | How OIDC federation works, what a web identity token contains, and how STS validates it. |
 | **03** | [The EKS OIDC Provider](#3-the-eks-oidc-provider) | How EKS acts as an OIDC issuer and what registering it in IAM establishes. |
 | **04** | [Service Account as Identity](#4-service-account-as-identity) | Kubernetes service accounts as the unit of workload identity, and the role annotation pattern. |
-| **05** | [Token Projection & Credential Injection](#5-token-projection--credential-injection) | How the mutating webhook, projected tokens, and the AWS SDK wire together transparently. |
-| **06** | [Trust Policy Design & Hardening](#6-trust-policy-design--hardening) | Anatomy of a federation trust policy, condition key precision, and privilege escalation misconfigurations. |
+| **05** | [Token Projection & Credential Injection](#5-token-projection-credential-injection) | How the mutating webhook, projected tokens, and the AWS SDK wire together transparently. |
+| **06** | [Trust Policy Design & Hardening](#6-trust-policy-design-hardening) | Anatomy of a federation trust policy, condition key precision, and privilege escalation misconfigurations. |
 | **07** | [Cross-Account Role Assumption](#7-cross-account-role-assumption) | Extending IRSA-federated identities across AWS account boundaries in a Landing Zone. |
 | **08** | [IRSA vs EKS Pod Identity](#8-irsa-vs-eks-pod-identity) | When to prefer the newer Pod Identity agent over IRSA, and what changes operationally. |
 | **09** | [Operational Considerations](#9-operational-considerations) | Token TTLs, credential rotation, CloudTrail observability, and when the model breaks down. |

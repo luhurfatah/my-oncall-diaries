@@ -1,22 +1,20 @@
 # EC2 Instance Scheduler
 
-Production cost optimization using AWS Instance Scheduler and complementary patterns. Covers scheduling architecture, deployment, tagging strategies, multi-account and multi-region operation, edge cases, and Day-2 operational runbooks.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Fundamentals & Solution Landscape](#1-fundamentals--solution-landscape) | What Instance Scheduler is, what it isn't, and when to use it vs alternatives. |
+| **01** | [Fundamentals & Solution Landscape](#1-fundamentals-solution-landscape) | What Instance Scheduler is, what it isn't, and when to use it vs alternatives. |
 | **02** | [Architecture Deep Dive](#2-architecture-deep-dive) | Component breakdown, DynamoDB schema, Lambda execution model, and EventBridge wiring. |
-| **03** | [Deployment & Bootstrap](#3-deployment--bootstrap) | CloudFormation deployment, parameter decisions, IAM cross-account roles, and initial validation. |
-| **04** | [Schedule & Period Configuration](#4-schedule--period-configuration) | Period primitives, schedule composition, timezone handling, override mechanics. |
+| **03** | [Deployment & Bootstrap](#3-deployment-bootstrap) | CloudFormation deployment, parameter decisions, IAM cross-account roles, and initial validation. |
+| **04** | [Schedule & Period Configuration](#4-schedule-period-configuration) | Period primitives, schedule composition, timezone handling, override mechanics. |
 | **05** | [Tagging Strategy](#5-tagging-strategy) | Tag naming, multi-value patterns, enforcement via SCP/Config, and tag governance. |
-| **06** | [Multi-Account & Multi-Region](#6-multi-account--multi-region) | Hub-and-spoke model, remote role trust, spoke account onboarding, cross-region constraints. |
+| **06** | [Multi-Account & Multi-Region](#6-multi-account-multi-region) | Hub-and-spoke model, remote role trust, spoke account onboarding, cross-region constraints. |
 | **07** | [RDS Scheduling](#7-rds-scheduling) | RDS differences from EC2, cluster vs instance behavior, Aurora caveats, snapshot-on-stop risk. |
 | **08** | [Operational Runbooks](#8-operational-runbooks) | Instance not stopping, instance not starting, DynamoDB config corruption, emergency override. |
-| **09** | [Monitoring & Alerting](#9-monitoring--alerting) | CloudWatch metrics emitted, log structure, recommended alarms, and cost validation. |
-| **10** | [Cost Impact & Sizing](#10-cost-impact--sizing) | Savings calculation model, scheduler overhead cost, ROI milestones, and reporting. |
-| **11** | [Alternatives & Trade-offs](#11-alternatives--trade-offs) | AWS Scheduler vs Instance Scheduler vs custom Lambda vs Auto Scaling schedules. |
+| **09** | [Monitoring & Alerting](#9-monitoring-alerting) | CloudWatch metrics emitted, log structure, recommended alarms, and cost validation. |
+| **10** | [Cost Impact & Sizing](#10-cost-impact-sizing) | Savings calculation model, scheduler overhead cost, ROI milestones, and reporting. |
+| **11** | [Alternatives & Trade-offs](#11-alternatives-trade-offs) | AWS Scheduler vs Instance Scheduler vs custom Lambda vs Auto Scaling schedules. |
 | **12** | [Day-2 Ops Checklist](#12-day-2-ops-checklist) | Weekly hygiene, quarterly reviews, offboarding instances cleanly. |
 
 ---

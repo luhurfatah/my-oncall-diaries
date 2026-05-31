@@ -1,24 +1,22 @@
 # Egress Inspection with AWS Gateway Load Balancer
 
-L7 egress inspection architecture using Gateway Load Balancer (GWLB) and third-party virtual appliances. Covers GWLB internals, appliance integration patterns, routing design, centralized vs distributed inspection models, failure modes, and Day-2 operational runbooks.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Fundamentals & Use Case Landscape](#1-fundamentals--use-case-landscape) | What GWLB is, what inspection problems it solves, and when not to use it. |
+| **01** | [Fundamentals & Use Case Landscape](#1-fundamentals-use-case-landscape) | What GWLB is, what inspection problems it solves, and when not to use it. |
 | **02** | [GWLB Architecture Internals](#2-gwlb-architecture-internals) | Geneve encapsulation, endpoint mechanics, flow symmetry guarantees, and health check behavior. |
 | **03** | [Centralized vs Distributed Inspection](#3-centralized-vs-distributed-inspection) | Hub-and-spoke vs per-VPC appliance models — full trade-off comparison with routing diagrams. |
 | **04** | [Routing Design](#4-routing-design) | Ingress routing, VPC route tables, Transit Gateway integration, and the hairpin pattern. |
 | **05** | [Appliance Integration](#5-appliance-integration) | Vendor appliance requirements, Geneve support, health check configuration, and scaling. |
 | **06** | [Auto Scaling Appliance Fleets](#6-auto-scaling-appliance-fleets) | Target group registration, scale-out triggers, connection draining, and warm pool strategy. |
 | **07** | [TLS Inspection](#7-tls-inspection) | Bumping vs passthrough, certificate authority deployment, OCSP/CRL, and browser trust. |
-| **08** | [Multi-Account & Multi-Region](#8-multi-account--multi-region) | GWLB endpoint sharing via PrivateLink, cross-account trust, and multi-region HA patterns. |
-| **09** | [Failure Modes & Blast Radius](#9-failure-modes--blast-radius) | What breaks when an appliance fails, AZ affinity behavior, and fail-open vs fail-closed design. |
+| **08** | [Multi-Account & Multi-Region](#8-multi-account-multi-region) | GWLB endpoint sharing via PrivateLink, cross-account trust, and multi-region HA patterns. |
+| **09** | [Failure Modes & Blast Radius](#9-failure-modes-blast-radius) | What breaks when an appliance fails, AZ affinity behavior, and fail-open vs fail-closed design. |
 | **10** | [Operational Runbooks](#10-operational-runbooks) | Traffic blackhole diagnosis, appliance replacement, emergency bypass, health check failures. |
 | **11** | [Observability](#11-observability) | VPC Flow Logs with GWLB, appliance metrics, CloudWatch alarms, and traffic analytics. |
 | **12** | [Cost Model](#12-cost-model) | GWLB endpoint pricing, data processing cost, appliance licensing, and cost vs security trade-off. |
-| **13** | [Alternatives & Trade-offs](#13-alternatives--trade-offs) | GWLB vs NAT GW + NACLs vs AWS Network Firewall vs proxy-based egress vs Security Groups. |
+| **13** | [Alternatives & Trade-offs](#13-alternatives-trade-offs) | GWLB vs NAT GW + NACLs vs AWS Network Firewall vs proxy-based egress vs Security Groups. |
 | **14** | [Day-2 Ops Checklist](#14-day-2-ops-checklist) | Weekly hygiene, appliance patching without downtime, quarterly threat model review. |
 
 ---

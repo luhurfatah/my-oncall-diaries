@@ -1,8 +1,5 @@
 # Lab 11 — Argo CD: ApplicationSets & Multi-Cluster
 
-> **Difficulty**: Advanced | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -36,26 +33,14 @@ By the end of this lab, you will:
 
 ### Generator Types
 
-```
-┌───────────────────────────────────────────────────────┐
-│                    ApplicationSet                      │
-│                                                       │
-│  ┌─────────────┐  Generates parameters from:          │
-│  │  Generator   │                                     │
-│  │             │  • List:     Static list of values   │
-│  │             │  • Git:      Files/dirs in a repo    │
-│  │             │  • Cluster:  Registered clusters     │
-│  │             │  • Matrix:   Combine 2 generators    │
-│  │             │  • Merge:    Merge generator outputs │
-│  └──────┬──────┘                                      │
-│         │                                             │
-│         ▼  For each set of parameters:                │
-│  ┌──────────────┐                                     │
-│  │  Template     │  Creates an Argo CD Application    │
-│  │  Application  │  with substituted values           │
-│  └──────────────┘                                     │
-└───────────────────────────────────────────────────────┘
-```
+An ApplicationSet acts as a factory that uses generators to automate Application creation:
+
+- **Generators:** Extract configurations and parameters from external sources:
+  - *List:* Iterates over a static inline array of values.
+  - *Git:* Dynamically reads directories or configuration files inside a Git repository.
+  - *Cluster:* Queries the clusters registered with Argo CD.
+  - *Matrix/Merge:* Combines or merges output parameters from multiple generators.
+- **Template Application:** Combines these generated values with a base Application definition to dynamically stamp out concrete, syncable Applications.
 
 ---
 

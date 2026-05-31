@@ -1,18 +1,17 @@
 # CI/CD Paradigms, Concepts & Philosophies
 
-High-level paradigms, philosophies, and architectural patterns that define modern software delivery. Covers cultural models, delivery mechanics, branching strategies, and the foundational trade-offs that shape how engineering organizations ship software at scale. 
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Core Paradigms & Philosophies](#1-core-paradigms--philosophies) | DevOps, DevSecOps, and Platform Engineering as distinct but related organizational models. |
+| **01** | [Core Paradigms & Philosophies](#1-core-paradigms-philosophies) | DevOps, DevSecOps, and Platform Engineering as distinct but related organizational models. |
 | **02** | [Inner Loop vs. Outer Loop](#2-inner-loop-vs-outer-loop) | The two lifecycle rings of software development and where automation belongs in each. |
 | **03** | [Immutable Infrastructure](#3-immutable-infrastructure) | The cattle vs. pets mental model and why immutability is a prerequisite for predictable delivery. |
 | **04** | [Shift Left](#4-shift-left) | Moving quality, security, and compliance validation as early as possible into the SDLC. |
 | **05** | [Declarative vs. Imperative](#5-declarative-vs-imperative) | How the "what" vs. "how" distinction shapes tooling choices and pipeline architecture. |
 | **06** | [Push-based vs. Pull-based CD](#6-push-based-vs-pull-based-cd) | The security and operational trade-offs between CI-driven deploys and GitOps reconciliation. |
-| **07** | [Continuous Reconciliation & Self-Healing](#7-continuous-reconciliation--self-healing) | Why point-in-time deployments are insufficient and how reconciliation loops enforce desired state. |
-| **08** | [Branching & Release Philosophies](#8-branching--release-philosophies) | Trunk-based development vs. Git Flow and the case for decoupling deployment from release. |
+| **07** | [Continuous Reconciliation & Self-Healing](#7-continuous-reconciliation-self-healing) | Why point-in-time deployments are insufficient and how reconciliation loops enforce desired state. |
+| **08** | [Branching & Release Philosophies](#8-branching-release-philosophies) | Trunk-based development vs. Git Flow and the case for decoupling deployment from release. |
 
 ---
 

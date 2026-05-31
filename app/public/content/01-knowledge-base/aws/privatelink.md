@@ -1,7 +1,5 @@
 # How AWS PrivateLink Works
 
-Comprehensive deep-dive into AWS PrivateLink — all five VPC endpoint types, how each works architecturally, and when to use each. Covers Interface Endpoints for AWS services, custom endpoint services (producer/consumer), Resource Endpoints and resource configurations, Service-Network Endpoints and VPC Lattice, Gateway Load Balancer Endpoints for virtual appliances, Gateway Endpoints for S3 and DynamoDB, cross-account and cross-region patterns, SaaS/third-party connectivity, on-premises access, DNS design, NLB patterns, acceptance policies, overlapping CIDR handling, security controls, and service limits.
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -9,21 +7,21 @@ Comprehensive deep-dive into AWS PrivateLink — all five VPC endpoint types, ho
 | **01** | [What PrivateLink Is](#1-what-privatelink-is) | The core abstraction, what problem it solves, and how it differs from VPC Peering and Transit Gateway. |
 | **02** | [The Five Endpoint Types](#2-the-five-endpoint-types) | Complete taxonomy — Interface, Resource, Service-Network, Gateway Load Balancer, and Gateway endpoints. |
 | **03** | [Interface Endpoints for AWS Services](#3-interface-endpoints-for-aws-services) | How Interface Endpoints work for native AWS services, which services need them, and common patterns. |
-| **04** | [Custom Endpoint Services: Producer & Consumer Model](#4-custom-endpoint-services-producer--consumer-model) | Building your own PrivateLink-backed service — NLB design, endpoint service creation, and consumer connection. |
+| **04** | [Custom Endpoint Services: Producer & Consumer Model](#4-custom-endpoint-services-producer-consumer-model) | Building your own PrivateLink-backed service — NLB design, endpoint service creation, and consumer connection. |
 | **05** | [NLB Design for Endpoint Services](#5-nlb-design-for-endpoint-services) | Target group patterns, health checks, preserve client IP, and NLB constraints that affect PrivateLink. |
-| **06** | [Resource Endpoints & Resource Configurations](#6-resource-endpoints--resource-configurations) | Accessing resources directly without an NLB — resource configuration types, resource gateway, and use cases. |
-| **07** | [Service-Network Endpoints & VPC Lattice](#7-service-network-endpoints--vpc-lattice) | Single endpoint for multiple services and resources via a VPC Lattice service network. |
+| **06** | [Resource Endpoints & Resource Configurations](#6-resource-endpoints-resource-configurations) | Accessing resources directly without an NLB — resource configuration types, resource gateway, and use cases. |
+| **07** | [Service-Network Endpoints & VPC Lattice](#7-service-network-endpoints-vpc-lattice) | Single endpoint for multiple services and resources via a VPC Lattice service network. |
 | **08** | [Gateway Load Balancer Endpoints](#8-gateway-load-balancer-endpoints) | Routing traffic through virtual appliances — firewalls, IDS/IPS — using GWLB endpoints. |
 | **09** | [Gateway Endpoints: S3 and DynamoDB](#9-gateway-endpoints-s3-and-dynamodb) | The route-table-based endpoint type that is NOT PrivateLink — and why that distinction matters. |
 | **10** | [DNS for PrivateLink](#10-dns-for-privatelink) | Private DNS override, custom DNS hostnames, PHZ design, split-horizon DNS, and resolution from on-premises. |
-| **11** | [Acceptance Policies & Allowlisting](#11-acceptance-policies--allowlisting) | Manual vs automatic acceptance, principal allowlisting, and managing consumer connections at scale. |
+| **11** | [Acceptance Policies & Allowlisting](#11-acceptance-policies-allowlisting) | Manual vs automatic acceptance, principal allowlisting, and managing consumer connections at scale. |
 | **12** | [Cross-Account PrivateLink](#12-cross-account-privatelink) | Producer and consumer in different AWS accounts — trust model, RAM sharing, and centralized endpoint patterns. |
 | **13** | [Cross-Region PrivateLink](#13-cross-region-privatelink) | How PrivateLink extends across regions via inter-region VPC peering, and the constraints involved. |
-| **14** | [SaaS & Third-Party PrivateLink](#14-saas--third-party-privatelink) | AWS Marketplace PrivateLink, vendor-managed endpoint services, and the consumer operational model. |
-| **15** | [On-Premises Access via Direct Connect & VPN](#15-on-premises-access-via-direct-connect--vpn) | How on-premises workloads reach PrivateLink endpoints through hybrid connectivity and the DNS resolution challenge. |
+| **14** | [SaaS & Third-Party PrivateLink](#14-saas-third-party-privatelink) | AWS Marketplace PrivateLink, vendor-managed endpoint services, and the consumer operational model. |
+| **15** | [On-Premises Access via Direct Connect & VPN](#15-on-premises-access-via-direct-connect-vpn) | How on-premises workloads reach PrivateLink endpoints through hybrid connectivity and the DNS resolution challenge. |
 | **16** | [Overlapping CIDR Handling](#16-overlapping-cidr-handling) | Why PrivateLink is the canonical solution to overlapping IP address spaces, and how to design for it. |
 | **17** | [Security Controls](#17-security-controls) | Endpoint policies, security groups, VPC endpoint conditions in IAM, and SCP guardrails. |
-| **18** | [Limits, Scaling & Availability](#18-limits-scaling--availability) | Per-AZ ENI limits, NLB connection limits, endpoint service availability design, and scaling patterns. |
+| **18** | [Limits, Scaling & Availability](#18-limits-scaling-availability) | Per-AZ ENI limits, NLB connection limits, endpoint service availability design, and scaling patterns. |
 
 ---
 

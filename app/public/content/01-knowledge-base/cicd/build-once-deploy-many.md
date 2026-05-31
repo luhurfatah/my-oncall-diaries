@@ -1,19 +1,17 @@
 # Build Once, Deploy Many
 
-No judgment. We've all been there — three Dockerfiles, a bash script with ENV flags, and the quiet dread of a production deploy. This is the way out. Covers immutable artifact promotion, environment-specific config injection, and the implementation patterns for backend containers, frontend SPAs, SSR frameworks, and mobile.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
 | **01** | [The Principle](#1-the-principle) | Why building per-environment violates delivery integrity and what immutable promotion actually means. |
 | **02** | [What Changes, What Does Not](#2-what-changes-what-does-not) | The hard boundary between build-time constants and runtime configuration. |
-| **03** | [Backend & Container Apps](#3-backend--container-apps) | Pipeline flow, Helm values, Kustomize overlays, and config injection patterns for server-side services. |
-| **04** | [Frontend SPAs — The Tricky Part](#4-frontend-spas--the-tricky-part) | Why build-time env var baking breaks the principle and three runtime config strategies that solve it. |
-| **05** | [SSR Apps — Next.js](#5-ssr-apps--nextjs) | Server-side rendering config patterns, `publicRuntimeConfig`, and the static export exception. |
+| **03** | [Backend & Container Apps](#3-backend-container-apps) | Pipeline flow, Helm values, Kustomize overlays, and config injection patterns for server-side services. |
+| **04** | [Frontend SPAs — The Tricky Part](#4-frontend-spas-the-tricky-part) | Why build-time env var baking breaks the principle and three runtime config strategies that solve it. |
+| **05** | [SSR Apps — Next.js](#5-ssr-apps-nextjs) | Server-side rendering config patterns, `publicRuntimeConfig`, and the static export exception. |
 | **06** | [Mobile Apps](#6-mobile-apps) | Why mobile binaries are the hardest case and how remote config services solve the promotion problem. |
 | **07** | [Artifact Promotion Pipeline](#7-artifact-promotion-pipeline) | How a full multi-environment promotion pipeline is structured, gated, and audited. |
-| **08** | [Common Violations & Failure Modes](#8-common-violations--failure-modes) | The most frequent ways teams accidentally break the build-once principle and how to detect them. |
+| **08** | [Common Violations & Failure Modes](#8-common-violations-failure-modes) | The most frequent ways teams accidentally break the build-once principle and how to detect them. |
 
 ---
 

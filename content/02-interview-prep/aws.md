@@ -643,3 +643,9 @@ Enforce **cost allocation tags** (`Project`, `Environment`, `Owner`, `Team`) via
 > **Gotcha:** Savings Plans commit to *spend*, not instance type — better flexibility than standard RIs, but still a financial lock-in; Spot without interruption handling fails batch jobs silently in interviews.
 
 </details>
+
+---
+
+## 📚 Question Reference
+
+Additional questions and topic coverage sourced from **[acecloudinterviews.com/questions](https://www.acecloudinterviews.com/questions/)**.

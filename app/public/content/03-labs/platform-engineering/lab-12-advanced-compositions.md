@@ -1,8 +1,5 @@
 # Lab 12 — Crossplane: Advanced Compositions & Functions
 
-> **Difficulty**: Advanced | **Duration**: 3 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 

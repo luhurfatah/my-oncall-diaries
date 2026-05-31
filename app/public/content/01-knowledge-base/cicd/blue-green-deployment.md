@@ -1,16 +1,14 @@
 # Blue/Green Deployment
 
-Zero-downtime releases for engineers who've learned the hard way that "just redeploy it" is not a rollback strategy. Covers the core pattern, kubectl-based implementation, GitOps with Flux CD and Helm, CI/CD pipelines, and the operational rules that stand between you and a very awkward incident retrospective.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Core Concept & Mental Model](#1-core-concept--mental-model) | What blue/green actually is, why it works, and where it breaks. |
+| **01** | [Core Concept & Mental Model](#1-core-concept-mental-model) | What blue/green actually is, why it works, and where it breaks. |
 | **02** | [Kubernetes Implementation (kubectl)](#2-kubernetes-implementation-kubectl) | Service selector cutover, deployment manifests, smoke-test service, PodDisruptionBudget, and GitHub Actions pipeline. |
-| **03** | [GitOps Implementation (Flux CD + Helm)](#3-gitops-implementation-flux-cd--helm) | Repo structure, HelmRelease per slot, Flux Kustomization health checks, and automated image-tag PRs. |
+| **03** | [GitOps Implementation (Flux CD + Helm)](#3-gitops-implementation-flux-cd-helm) | Repo structure, HelmRelease per slot, Flux Kustomization health checks, and automated image-tag PRs. |
 | **04** | [GitOps End-to-End Flow](#4-gitops-end-to-end-flow) | Step-by-step from `git tag` to live traffic to rollback. |
-| **05** | [Operational Rules & Trade-offs](#5-operational-rules--trade-offs) | The non-negotiables that separate a blue/green deploy from a blue/green incident. |
+| **05** | [Operational Rules & Trade-offs](#5-operational-rules-trade-offs) | The non-negotiables that separate a blue/green deploy from a blue/green incident. |
 | **06** | [Common Failure Modes](#6-common-failure-modes) | What goes wrong in practice and how to detect it before it hits users. |
 
 ---

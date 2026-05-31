@@ -1,8 +1,5 @@
 # Lab 05 — Crossplane: Installation & First Provider
 
-> **Difficulty**: Beginner | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -28,36 +25,13 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Kubernetes Cluster                         │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │                 Crossplane Core                        │  │
-│  │                                                        │  │
-│  │  ┌──────────────────┐  ┌──────────────────────────┐   │  │
-│  │  │  Crossplane Pod  │  │  RBAC Manager Pod        │   │  │
-│  │  │  (Core Engine)   │  │  (Permission Management) │   │  │
-│  │  └────────┬─────────┘  └──────────────────────────┘   │  │
-│  │           │                                            │  │
-│  │  ┌────────▼───────────────────────────────────────┐   │  │
-│  │  │              Provider Runtime                   │   │  │
-│  │  │                                                 │   │  │
-│  │  │  ┌───────────┐ ┌───────────┐ ┌──────────────┐ │   │  │
-│  │  │  │Provider   │ │Provider   │ │Provider      │ │   │  │
-│  │  │  │Kubernetes │ │Helm       │ │AWS/Azure/GCP │ │   │  │
-│  │  │  └─────┬─────┘ └─────┬─────┘ └──────┬───────┘ │   │  │
-│  │  │        │              │              │          │   │  │
-│  │  └────────┼──────────────┼──────────────┼──────────┘   │  │
-│  └───────────┼──────────────┼──────────────┼──────────────┘  │
-│              │              │              │                  │
-│              ▼              ▼              ▼                  │
-│  ┌───────────────┐  ┌──────────┐  ┌────────────────┐        │
-│  │ K8s Resources │  │  Helm    │  │ Cloud Resources│        │
-│  │ (in-cluster)  │  │ Releases │  │ (S3, RDS, etc) │        │
-│  └───────────────┘  └──────────┘  └────────────────┘        │
-└──────────────────────────────────────────────────────────────┘
-```
+Crossplane extends a Kubernetes cluster into a universal control plane:
+
+- **Crossplane Core:**
+  - **Crossplane Pod:** The core reconciliation engine driving state sync.
+  - **RBAC Manager Pod:** Manages the service accounts and RBAC permissions needed by installed providers.
+- **Provider Runtime:** Custom controllers installed as plugins (e.g., Kubernetes, Helm, AWS/Azure/GCP Providers).
+- **Target Resources:** Managed resources created by providers, including in-cluster Kubernetes resources, Helm releases, and external cloud resources.
 
 ---
 
@@ -88,37 +62,12 @@ aws rds create-db-instance          (Crossplane reconciles continuously)
 
 ### The Crossplane Control Loop
 
-```
-┌─────────────────────────────────────────────────┐
-│                                                 │
-│  1. Developer creates/updates a Managed         │
-│     Resource (kubectl apply -f bucket.yaml)     │
-│                         │                       │
-│                         ▼                       │
-│  2. Crossplane Provider detects the change      │
-│                         │                       │
-│                         ▼                       │
-│  3. Provider calls the external API             │
-│     (e.g., AWS API to create S3 bucket)         │
-│                         │                       │
-│                         ▼                       │
-│  4. Provider updates the MR status with         │
-│     the external resource's state               │
-│                         │                       │
-│                         ▼                       │
-│  5. Loop continues every ~10 seconds            │
-│     (drift detection & correction)              │
-│                         │                       │
-│                         └──────────┐            │
-│                                    │            │
-│                    ┌───────────────┘            │
-│                    │                            │
-│                    ▼                            │
-│  6. If external resource is changed             │
-│     manually, Crossplane corrects it            │
-│                                                 │
-└─────────────────────────────────────────────────┘
-```
+1. **Apply Manifest:** Developer creates or updates a Managed Resource (e.g., `kubectl apply -f bucket.yaml`).
+2. **Detect Change:** The Crossplane Provider controller watches the custom resource and detects the update.
+3. **API Invocation:** The Provider calls the target API (e.g., AWS API) to provision or update the external resource.
+4. **Update Status:** The Provider updates the Kubernetes Custom Resource status with the current state of the external resource.
+5. **Continuous Loop:** The reconciliation loop runs periodically (drift detection and correction).
+6. **Self-Healing:** If the external resource is modified manually, the next reconciliation loop corrects the drift back to the state declared in Git.
 
 ---
 

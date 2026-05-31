@@ -1,21 +1,19 @@
 # AWS Landing Zones — Control Tower, AFT & Enterprise Patterns
 
-Production AWS landing zone design using AWS Control Tower and Account Factory for Terraform (AFT). Covers account vending, guardrails, networking topologies, security baselines, and the non-obvious pitfalls of running landing zones at scale.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
 | **01** | [Landing Zone Fundamentals](#1-landing-zone-fundamentals) | Core landing zone goals, building vs buying, and multi-account strategies. |
-| **02** | [AWS Organizations & OU Design](#2-aws-organizations--ou-design) | Designing OU structures (Core vs Workloads vs Sandbox) and account allocation principles. |
-| **03** | [AWS Control Tower — Production Setup](#3-aws-control-tower--production-setup) | Control Tower version lifecycles, resource provisioning, and enrolling existing accounts safely. |
+| **02** | [AWS Organizations & OU Design](#2-aws-organizations-ou-design) | Designing OU structures (Core vs Workloads vs Sandbox) and account allocation principles. |
+| **03** | [AWS Control Tower — Production Setup](#3-aws-control-tower-production-setup) | Control Tower version lifecycles, resource provisioning, and enrolling existing accounts safely. |
 | **04** | [Account Factory for Terraform (AFT)](#4-account-factory-for-terraform-aft) | Deploying and tuning AFT, and customizing bootstrap and pipeline executions. |
-| **05** | [Guardrails & Service Control Policies](#5-guardrails--service-control-policies) | Detective vs preventive controls, and building/testing production-ready SCPs. |
+| **05** | [Guardrails & Service Control Policies](#5-guardrails-service-control-policies) | Detective vs preventive controls, and building/testing production-ready SCPs. |
 | **06** | [Networking Architecture](#6-networking-architecture) | VPC design (RFC1918 allocations, subnets) and Transit Gateway hub-and-spoke topologies. |
-| **07** | [Security Baseline & Identity](#7-security-baseline--identity) | IAM Identity Center (SSO) integration, permission sets, and Security Hub aggregates. |
-| **08** | [Logging & Observability](#8-logging--observability) | Centralizing logs with CloudTrail org trails, S3 configurations, and CloudWatch log streaming. |
+| **07** | [Security Baseline & Identity](#7-security-baseline-identity) | IAM Identity Center (SSO) integration, permission sets, and Security Hub aggregates. |
+| **08** | [Logging & Observability](#8-logging-observability) | Centralizing logs with CloudTrail org trails, S3 configurations, and CloudWatch log streaming. |
 | **09** | [Multi-Region Strategy](#9-multi-region-strategy) | Active vs governed regions, AFT python hooks for multi-region security, and Region failover. |
-| **10** | [Day-2 Operations & Customization Pipelines](#10-day-2-operations--customization-pipelines) | Managing drift detection, clean account offboarding, and quarterly review checklists. |
+| **10** | [Day-2 Operations & Customization Pipelines](#10-day-2-operations-customization-pipelines) | Managing drift detection, clean account offboarding, and quarterly review checklists. |
 
 ---
 

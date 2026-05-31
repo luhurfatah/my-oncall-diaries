@@ -1,7 +1,5 @@
 # Kubernetes Control Plane Internals
 
-How Kubernetes works under the hood — the control plane components, the node-level runtime stack, and how they interact to take a workload from a YAML manifest to a running container. Covers the API server, etcd, scheduler, controller manager, kubelet, the CRI/containerd/runc chain, cgroups and namespaces, kubenet, and image pulling. Traces the full pod lifecycle end-to-end as a unifying thread.
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -13,10 +11,10 @@ How Kubernetes works under the hood — the control plane components, the node-l
 | **05** | [The Controller Manager](#5-the-controller-manager) | The reconciliation engine — what controllers are, how they watch and act, and which built-in controllers matter most. |
 | **06** | [The Kubelet](#6-the-kubelet) | The node agent — how it watches for work, drives the container runtime, manages probes, and handles eviction. |
 | **07** | [The Container Runtime Stack: CRI, containerd, runc](#7-the-container-runtime-stack-cri-containerd-runc) | The layered interfaces from kubelet to running process — CRI, containerd, snapshotter, and runc. |
-| **08** | [Linux Isolation: cgroups & Namespaces](#8-linux-isolation-cgroups--namespaces) | How the kernel enforces resource limits and process isolation for every container. |
+| **08** | [Linux Isolation: cgroups & Namespaces](#8-linux-isolation-cgroups-namespaces) | How the kernel enforces resource limits and process isolation for every container. |
 | **09** | [Kubenet: The Built-in Network Plugin](#9-kubenet-the-built-in-network-plugin) | What kubenet is, how it differs from CNI plugins, and where it still appears. |
-| **10** | [Image Pull & Layer Caching](#10-image-pull--layer-caching) | How container images are fetched, unpacked, and layered before a container starts. |
-| **11** | [Full Pod Lifecycle: kubectl apply → Running Pod](#11-full-pod-lifecycle-kubectl-apply--running-pod) | A step-by-step trace of every system interaction from manifest submission to a healthy running container. |
+| **10** | [Image Pull & Layer Caching](#10-image-pull-layer-caching) | How container images are fetched, unpacked, and layered before a container starts. |
+| **11** | [Full Pod Lifecycle: kubectl apply → Running Pod](#11-full-pod-lifecycle-kubectl-apply-running-pod) | A step-by-step trace of every system interaction from manifest submission to a healthy running container. |
 
 ---
 

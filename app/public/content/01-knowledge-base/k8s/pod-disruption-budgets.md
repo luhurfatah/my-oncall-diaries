@@ -1,7 +1,5 @@
 # How Pod Disruption Budgets Work
 
-Conceptual and operational deep-dive into Pod Disruption Budgets (PDB) — what they protect, how the Eviction API enforces them, how node drain and cluster autoscaling interact with them, and how they relate to rolling updates and PriorityClass. Covers common misconfigurations, deadlock scenarios, and design patterns for StatefulSets and multi-replica workloads.
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -10,12 +8,12 @@ Conceptual and operational deep-dive into Pod Disruption Budgets (PDB) — what 
 | **02** | [Voluntary vs Involuntary Disruptions](#2-voluntary-vs-involuntary-disruptions) | The fundamental distinction that defines what PDB can and cannot protect against. |
 | **03** | [PDB Mechanics: minAvailable and maxUnavailable](#3-pdb-mechanics-minavailable-and-maxunavailable) | How the two PDB fields work, what they calculate against, and how to choose between them. |
 | **04** | [The Eviction API](#4-the-eviction-api) | How eviction requests are processed, how PDB is checked, and what happens when a budget is exhausted. |
-| **05** | [Node Drain & kubectl drain](#5-node-drain--kubectl-drain) | How drain works under the hood, its interaction with PDB, and why drains block. |
-| **06** | [Cluster Autoscaler & Karpenter Interaction](#6-cluster-autoscaler--karpenter-interaction) | How scale-down decisions respect PDB and the operational implications for node consolidation. |
-| **07** | [Rolling Updates & PDB](#7-rolling-updates--pdb) | How Deployment rolling updates interact with PDB, the relationship with maxSurge and maxUnavailable, and where conflicts arise. |
-| **08** | [PriorityClass & Preemption](#8-priorityclass--preemption) | How pod priority affects eviction ordering, what preemption is, and how it bypasses PDB. |
+| **05** | [Node Drain & kubectl drain](#5-node-drain-kubectl-drain) | How drain works under the hood, its interaction with PDB, and why drains block. |
+| **06** | [Cluster Autoscaler & Karpenter Interaction](#6-cluster-autoscaler-karpenter-interaction) | How scale-down decisions respect PDB and the operational implications for node consolidation. |
+| **07** | [Rolling Updates & PDB](#7-rolling-updates-pdb) | How Deployment rolling updates interact with PDB, the relationship with maxSurge and maxUnavailable, and where conflicts arise. |
+| **08** | [PriorityClass & Preemption](#8-priorityclass-preemption) | How pod priority affects eviction ordering, what preemption is, and how it bypasses PDB. |
 | **09** | [Design Patterns](#9-design-patterns) | PDB patterns for Deployments, StatefulSets, single-replica workloads, and critical infrastructure pods. |
-| **10** | [Common Misconfigurations & Deadlocks](#10-common-misconfigurations--deadlocks) | The configurations that silently break cluster maintenance — and how to detect and fix them. |
+| **10** | [Common Misconfigurations & Deadlocks](#10-common-misconfigurations-deadlocks) | The configurations that silently break cluster maintenance — and how to detect and fix them. |
 
 ---
 

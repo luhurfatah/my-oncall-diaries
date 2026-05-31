@@ -1,12 +1,10 @@
 # SRE — Keeping the Lights On
 
-The daily operational craft of Site Reliability Engineering — eliminating toil through automation, monitoring services with the right signals, managing production incidents with structure, and extracting learning from failures through blameless postmortems. These are the practices that define what SRE work actually looks like on a day-to-day basis. Written for engineers in or transitioning to SRE roles and for platform teams adopting SRE operational practices.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Toil — Definition and Elimination](#1-toil--definition-and-elimination) | What toil is precisely, why it is an organizational tax, and how SRE teams systematically identify and reduce it. |
+| **01** | [Toil — Definition and Elimination](#1-toil-definition-and-elimination) | What toil is precisely, why it is an organizational tax, and how SRE teams systematically identify and reduce it. |
 | **02** | [Eliminating Toil with Automation](#2-eliminating-toil-with-automation) | The automation hierarchy, where to invest engineering effort, and when not to automate. |
 | **03** | [Monitoring and Observability](#3-monitoring-and-observability) | The four golden signals, symptom-based vs. cause-based alerting, and burn-rate alert tiers. |
 | **04** | [Incident Management](#4-incident-management) | The incident lifecycle, severity classification, command structure, and the SRE approach to managing production failures. |

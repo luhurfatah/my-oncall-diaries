@@ -1,10 +1,7 @@
 # Luhur Muhamad Fatah
 
-> **Cloud Platform Engineer · DevOps Engineer**
-> 
-> 📍 Semarang, Indonesia & Remote
-> · 📧 [luhurfatah@gmail.com](mailto:luhurfatah@gmail.com)
-> · 🔗 [linkedin.com/in/luhurfatah](https://www.linkedin.com/in/luhurfatah)
+**Cloud Platform Engineer · DevOps Engineer** 
+Semarang, Indonesia & Remote | [luhurfatah@gmail.com](mailto:luhurfatah@gmail.com) | [linkedin.com/in/luhurfatah](https://www.linkedin.com/in/luhurfatah)
 
 ---
 

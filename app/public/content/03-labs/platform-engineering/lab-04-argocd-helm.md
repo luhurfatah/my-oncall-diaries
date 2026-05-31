@@ -1,8 +1,5 @@
 # Lab 04 — Argo CD: Helm Charts & Kustomize
 
-> **Difficulty**: Beginner–Intermediate | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -31,34 +28,11 @@ By the end of this lab, you will:
 
 Argo CD doesn't just apply plain YAML — it supports multiple manifest generation tools:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Git Repository                        │
-│                                                         │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐            │
-│  │ Plain    │  │   Helm    │  │Kustomize │            │
-│  │ YAML     │  │   Chart   │  │  Base +  │            │
-│  │          │  │           │  │  Overlays│            │
-│  └────┬─────┘  └─────┬─────┘  └────┬─────┘            │
-│       │              │             │                    │
-└───────┼──────────────┼─────────────┼────────────────────┘
-        │              │             │
-        ▼              ▼             ▼
-┌─────────────────────────────────────────────────────────┐
-│              Argo CD Repo Server                        │
-│                                                         │
-│  Detects tool    Runs            Runs                   │
-│  automatically   helm template   kustomize build        │
-│                                                         │
-│  Output: Plain Kubernetes Manifests (YAML)              │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-                       ▼  Apply
-                ┌──────────────┐
-                │  Kubernetes  │
-                │   Cluster    │
-                └──────────────┘
-```
+Argo CD handles manifest rendering dynamically by acting as a pipeline between Git and the Kubernetes API:
+
+- **Git Repository:** Stores plain YAML manifests, Helm Charts, or Kustomize base + overlays.
+- **Argo CD Repo Server:** Detects the format automatically, runs the appropriate template commands (e.g., `helm template` or `kustomize build`), and generates flat, plain Kubernetes manifests (YAML).
+- **Kubernetes Cluster:** The generated plain manifests are applied to the cluster, ensuring git-driven parity.
 
 ### Helm vs. Kustomize
 
@@ -75,13 +49,9 @@ Argo CD doesn't just apply plain YAML — it supports multiple manifest generati
 
 Sync waves control the **order** of resource deployment:
 
-```
-Wave -1          Wave 0           Wave 1           Wave 2
-──────────       ──────────       ──────────       ──────────
-Namespaces  ──▶  ConfigMaps  ──▶  Deployments ──▶  Ingress
-CRDs             Secrets          Services         Monitoring
-RBAC             PVCs
-```
+| Wave -1 (System Foundations) | Wave 0 (Configurations) | Wave 1 (Workloads) | Wave 2 (Routing & Monitoring) |
+|---|---|---|---|
+| • Namespaces<br>• CRDs<br>• RBAC | • ConfigMaps<br>• Secrets<br>• PVCs | • Deployments<br>• Services | • Ingress<br>• Monitoring |
 
 ---
 
@@ -768,16 +738,10 @@ kubectl logs -n sync-waves-demo job/db-migration 2>/dev/null || echo "PreSync ho
 
 ### Hook Lifecycle Diagram
 
-```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│ PreSync  │───▶│   Sync   │───▶│PostSync  │    │SyncFail  │
-│  Hooks   │    │Resources │    │  Hooks   │    │  Hooks   │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-                                                      │
-DB Migration    Apply YAML    Smoke Tests      ◄──────┘
-Schema Update   Deployments   Notifications     (only on failure)
-Backup          Services      Cache Warm-up
-```
+- **PreSync Hooks:** Run *before* the application sync (e.g., DB Migration, Schema Updates, Backups).
+- **Sync Resources:** The core Kubernetes resource deployment step (e.g., applying Deployments, Services).
+- **PostSync Hooks:** Run *after* a successful sync completes (e.g., running Smoke Tests, warming up caches).
+- **SyncFail Hooks:** Trigger only if the sync operation fails (e.g., sending notifications, alerts).
 
 ---
 

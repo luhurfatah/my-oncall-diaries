@@ -1,15 +1,16 @@
 # Interview Prep Index
 
-Quick-reference Q&A for interviews and technical screens. Writing rules and format are defined in **[STANDARD.md](STANDARD.md)** — use **`terraform.md`** as the reference layout.
+Quick-reference Q&A for interviews and technical screens. Each file follows the canonical collapsible `<details>` format — concise question, structured answer, gotcha.
 
-| Topic | File | Format |
-| :--- | :--- | :--- |
-| AWS | [aws.md](aws.md) | Canonical |
-| Terraform | [terraform.md](terraform.md) | Canonical (**reference layout**) |
-| Kubernetes | [k8s.md](k8s.md) | Legacy — migrate per [STANDARD.md](STANDARD.md) |
-| CI/CD | [cicd.md](cicd.md) | Legacy |
-| IaC (general) | [iaac.md](iaac.md) | Legacy |
+> **Question bank reference:** [acecloudinterviews.com/questions](https://www.acecloudinterviews.com/questions/) — use this as a source for additional questions to add to each topic file.
+
+| Topic | File |
+| :--- | :--- |
+| AWS | [aws.md](aws.md) |
+| Terraform | [terraform.md](terraform.md) |
+| Kubernetes | [k8s.md](k8s.md) |
+| CI/CD | [cicd.md](cicd.md) |
 
 ## Related knowledge base
 
-Long-form design notes and runbooks live under [`01-knowledge-base/`](../01-knowledge-base/) — link from interview answers instead of copying full articles here.
+Long-form design notes and deep-dives live under [`01-knowledge-base/`](../01-knowledge-base/) — link from interview answers instead of copying full articles here.

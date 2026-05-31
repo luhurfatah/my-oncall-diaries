@@ -72,6 +72,11 @@
             "path": "01-knowledge-base/cicd/00-index.md"
           },
           {
+            "name": "best-practices.md",
+            "type": "file",
+            "path": "01-knowledge-base/cicd/best-practices.md"
+          },
+          {
             "name": "blue-green-deployment.md",
             "type": "file",
             "path": "01-knowledge-base/cicd/blue-green-deployment.md"
@@ -82,29 +87,24 @@
             "path": "01-knowledge-base/cicd/build-once-deploy-many.md"
           },
           {
-            "name": "cicd-best-practices.md",
-            "type": "file",
-            "path": "01-knowledge-base/cicd/cicd-best-practices.md"
-          },
-          {
-            "name": "cicd-paradigms-and-concepts.md",
-            "type": "file",
-            "path": "01-knowledge-base/cicd/cicd-paradigms-and-concepts.md"
-          },
-          {
             "name": "dora-matrix.md",
             "type": "file",
             "path": "01-knowledge-base/cicd/dora-matrix.md"
           },
           {
-            "name": "git-said-so.md",
+            "name": "foundations.md",
             "type": "file",
-            "path": "01-knowledge-base/cicd/git-said-so.md"
+            "path": "01-knowledge-base/cicd/foundations.md"
           },
           {
             "name": "github-actions-reference.md",
             "type": "file",
             "path": "01-knowledge-base/cicd/github-actions-reference.md"
+          },
+          {
+            "name": "gitops.md",
+            "type": "file",
+            "path": "01-knowledge-base/cicd/gitops.md"
           }
         ]
       },
@@ -119,24 +119,24 @@
             "path": "01-knowledge-base/iaac/00-index.md"
           },
           {
-            "name": "02-best-practices.md",
+            "name": "best-practices.md",
             "type": "file",
-            "path": "01-knowledge-base/iaac/02-best-practices.md"
+            "path": "01-knowledge-base/iaac/best-practices.md"
           },
           {
-            "name": "04-pre-commit-and-validation.md",
+            "name": "cicd.md",
             "type": "file",
-            "path": "01-knowledge-base/iaac/04-pre-commit-and-validation.md"
+            "path": "01-knowledge-base/iaac/cicd.md"
           },
           {
-            "name": "paradigms-and-concepts.md",
+            "name": "foundations.md",
             "type": "file",
-            "path": "01-knowledge-base/iaac/paradigms-and-concepts.md"
+            "path": "01-knowledge-base/iaac/foundations.md"
           },
           {
-            "name": "pattern.md",
+            "name": "pre-commit-and-validation.md",
             "type": "file",
-            "path": "01-knowledge-base/iaac/pattern.md"
+            "path": "01-knowledge-base/iaac/pre-commit-and-validation.md"
           }
         ]
       },
@@ -173,19 +173,19 @@
         "path": "01-knowledge-base/sre",
         "children": [
           {
-            "name": "humans-and-orgs.md",
+            "name": "culture-and-structure.md",
             "type": "file",
-            "path": "01-knowledge-base/sre/humans-and-orgs.md"
+            "path": "01-knowledge-base/sre/culture-and-structure.md"
           },
           {
-            "name": "keeping-the-lights-on.md",
+            "name": "day-two-operations.md",
             "type": "file",
-            "path": "01-knowledge-base/sre/keeping-the-lights-on.md"
+            "path": "01-knowledge-base/sre/day-two-operations.md"
           },
           {
-            "name": "what-and-why.md",
+            "name": "principles.md",
             "type": "file",
-            "path": "01-knowledge-base/sre/what-and-why.md"
+            "path": "01-knowledge-base/sre/principles.md"
           }
         ]
       }
@@ -212,11 +212,6 @@
         "path": "02-interview-prep/cicd.md"
       },
       {
-        "name": "iaac.md",
-        "type": "file",
-        "path": "02-interview-prep/iaac.md"
-      },
-      {
         "name": "k8s.md",
         "type": "file",
         "path": "02-interview-prep/k8s.md"
@@ -239,24 +234,29 @@
         "path": "03-labs/active-directory",
         "children": [
           {
-            "name": "01-ad-dns-setup.md",
+            "name": "00-index.md",
             "type": "file",
-            "path": "03-labs/active-directory/01-ad-dns-setup.md"
+            "path": "03-labs/active-directory/00-index.md"
           },
           {
-            "name": "02-gpo-fundamentals.md",
+            "name": "lab-01-ad-dns-setup.md",
             "type": "file",
-            "path": "03-labs/active-directory/02-gpo-fundamentals.md"
+            "path": "03-labs/active-directory/lab-01-ad-dns-setup.md"
           },
           {
-            "name": "03-advanced-gpo.md",
+            "name": "lab-02-gpo-fundamentals.md",
             "type": "file",
-            "path": "03-labs/active-directory/03-advanced-gpo.md"
+            "path": "03-labs/active-directory/lab-02-gpo-fundamentals.md"
           },
           {
-            "name": "04-multi-dc-replication.md",
+            "name": "lab-03-advanced-gpo.md",
             "type": "file",
-            "path": "03-labs/active-directory/04-multi-dc-replication.md"
+            "path": "03-labs/active-directory/lab-03-advanced-gpo.md"
+          },
+          {
+            "name": "lab-04-multi-dc-replication.md",
+            "type": "file",
+            "path": "03-labs/active-directory/lab-04-multi-dc-replication.md"
           }
         ]
       },
@@ -265,6 +265,11 @@
         "type": "directory",
         "path": "03-labs/platform-engineering",
         "children": [
+          {
+            "name": "00-index.md",
+            "type": "file",
+            "path": "03-labs/platform-engineering/00-index.md"
+          },
           {
             "name": "lab-01-fundamentals.md",
             "type": "file",
@@ -341,6 +346,11 @@
             "path": "03-labs/platform-engineering/lab-15-security-observability.md"
           }
         ]
+      },
+      {
+        "name": "00-index.md",
+        "type": "file",
+        "path": "03-labs/00-index.md"
       }
     ]
   },

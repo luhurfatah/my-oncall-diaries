@@ -1,8 +1,5 @@
 # Lab 10 — Integrating Argo CD + Crossplane (GitOps-Driven IaC)
 
-> **Difficulty**: Intermediate–Advanced | **Duration**: 3 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -26,27 +23,10 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│  Developer commits ──▶ Git Repo ──▶ Argo CD ──▶ Crossplane │
-│                                                             │
-│  ┌──────────┐    ┌──────────────┐    ┌──────────────────┐  │
-│  │          │    │              │    │                  │  │
-│  │   Git    │───▶│   Argo CD    │───▶│   Crossplane     │  │
-│  │   Repo   │    │              │    │                  │  │
-│  │          │    │  Watches &   │    │  Reconciles &    │  │
-│  │ - XRDs   │    │  Syncs       │    │  Provisions      │  │
-│  │ - Comps  │    │  manifests   │    │  cloud resources │  │
-│  │ - Claims │    │              │    │                  │  │
-│  └──────────┘    └──────────────┘    └──────────────────┘  │
-│                                                             │
-│  Two reconciliation loops working in harmony:               │
-│  1. Argo CD: Git → Cluster (K8s manifests)                 │
-│  2. Crossplane: K8s CRDs → Cloud APIs                     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+The GitOps IaC workflow is driven by two independent reconciliation loops working in harmony:
+
+1. **Argo CD Loop (Git → Cluster):** Watches the Git Repository containing platform files (XRDs, Compositions, Claims) and synchronizes them directly into the Kubernetes cluster.
+2. **Crossplane Loop (Cluster → Cloud):** Detects the synchronized custom resources (Claims) inside the Kubernetes API and runs the respective Compositions to provision resources.
 
 ---
 

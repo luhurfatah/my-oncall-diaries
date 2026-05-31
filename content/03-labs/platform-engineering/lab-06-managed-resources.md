@@ -1,8 +1,5 @@
 # Lab 06 — Crossplane: Managing Resources
 
-> **Difficulty**: Intermediate | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -29,14 +26,14 @@ By the end of this lab, you will:
 
 ### Resource Lifecycle States
 
-```
-Created ──▶ Syncing ──▶ Ready ──▶ Updated ──▶ Deleting ──▶ Deleted
-                │                     │
-                ▼                     ▼
-           Failed/Stuck          OutOfSync
-           (check logs)       (drift detected,
-                               auto-correcting)
-```
+##### Resource Lifecycle State Machine
+- **Created:** The resource manifest is registered in the control plane.
+- **Syncing:** Crossplane is actively deploying or applying configuration updates.
+- **Ready:** The resource is fully provisioned and functional.
+- **Updated:** Configuration changes are pushed and updated successfully.
+- **Deleting/Deleted:** The resource is removed from the external provider and cleaned up.
+- **Failed/Stuck:** The deployment has failed or is blocked (check logs for errors).
+- **OutOfSync:** Drift is detected relative to the declared state, triggering auto-correction back to parity.
 
 ### Crossplane Resource Conditions
 

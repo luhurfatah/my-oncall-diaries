@@ -1,12 +1,10 @@
 # SRE — What and Why
 
-The foundational philosophy, reliability measurement stack, and error budget model of Site Reliability Engineering as defined and practiced by Google. Covers the origin and core thesis of SRE, the precise definitions of SLIs, SLOs, and SLAs as distinct concepts, and how error budgets operationalize the trade-off between reliability and feature velocity. Written for engineers entering SRE roles and engineering leaders evaluating where SRE applies in their organization.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [What SRE Is — and What It Is Not](#1-what-sre-is--and-what-it-is-not) | The origin at Google, the core thesis, and how SRE differs from traditional Ops, DevOps, and Platform Engineering. |
+| **01** | [What SRE Is — and What It Is Not](#1-what-sre-is-and-what-it-is-not) | The origin at Google, the core thesis, and how SRE differs from traditional Ops, DevOps, and Platform Engineering. |
 | **02** | [The SRE Reliability Stack](#2-the-sre-reliability-stack) | Service Level Indicators, Objectives, and Agreements as a layered system of reliability measurement and commitment. |
 | **03** | [Error Budgets](#3-error-budgets) | How error budgets operationalize the trade-off between reliability and feature velocity, and what it means to spend or exhaust one. |
 

@@ -1,7 +1,5 @@
 # DORA Metrics — Measuring Software Delivery Performance
 
-The four DORA metrics — Deployment Frequency, Lead Time for Changes, Change Failure Rate, and Time to Restore Service — as practical engineering instruments for measuring and improving software delivery performance. Covers the research foundation, precise definitions, measurement implementation, benchmarking, team-level anti-patterns, and how to use the metrics to drive meaningful engineering improvements rather than gaming and theater.
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -14,7 +12,7 @@ The four DORA metrics — Deployment Frequency, Lead Time for Changes, Change Fa
 | **06** | [Performance Benchmarks](#6-performance-benchmarks) | The four performance tiers — Elite, High, Medium, Low — with thresholds for each metric. |
 | **07** | [Measurement Implementation](#7-measurement-implementation) | Data sources, pipeline instrumentation, dashboards, and the metrics collection architecture. |
 | **08** | [The Interplay Between Metrics](#8-the-interplay-between-metrics) | How the four metrics constrain and inform each other, and how to read them as a system. |
-| **09** | [Anti-Patterns & Gaming](#9-anti-patterns--gaming) | The most common ways teams inadvertently or deliberately corrupt their DORA data. |
+| **09** | [Anti-Patterns & Gaming](#9-anti-patterns-gaming) | The most common ways teams inadvertently or deliberately corrupt their DORA data. |
 | **10** | [Using DORA to Drive Improvement](#10-using-dora-to-drive-improvement) | How to move from measurement to action, what levers actually move the metrics, and the improvement loop. |
 
 ---

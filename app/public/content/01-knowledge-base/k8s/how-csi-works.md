@@ -1,7 +1,5 @@
 # Kubernetes CSI — Container Storage Interface
 
-Deep-dive into how Kubernetes storage works at the volume and node level, how the Container Storage Interface (CSI) specification enables pluggable storage implementations, and how three production CSI drivers — AWS EBS CSI, Ceph CSI (RBD and CephFS), and the in-tree legacy stack — implement the Kubernetes storage model differently. Covers the Linux storage primitives that underpin all CSI drivers, the full end-to-end volume lifecycle, dynamic provisioning, snapshots, and the architectural trade-offs between block and filesystem storage in production clusters.
-
 ## Table of Contents
 
 | Section | Topic | Description |
@@ -11,11 +9,11 @@ Deep-dive into how Kubernetes storage works at the volume and node level, how th
 | **03** | [What CSI Is and Is Not](#3-what-csi-is-and-is-not) | The CSI specification, its three gRPC services, what it defines, and what it deliberately leaves to the driver. |
 | **04** | [CSI Driver Architecture](#4-csi-driver-architecture) | Sidecars, DaemonSets, Deployments, the node plugin vs controller plugin split, and how they communicate with kubelet. |
 | **05** | [End-to-End Volume Lifecycle](#5-end-to-end-volume-lifecycle) | The complete journey of a volume — from PVC creation to pod deletion — across every component and API call. |
-| **06** | [Dynamic Provisioning & StorageClass](#6-dynamic-provisioning--storageclass) | How StorageClass parameters drive provisioner behavior, reclaim policies, binding modes, and topology constraints. |
-| **07** | [Volume Snapshots & Cloning](#7-volume-snapshots--cloning) | The VolumeSnapshot API, how CSI drivers implement snapshot and restore, and operational patterns for backup. |
+| **06** | [Dynamic Provisioning & StorageClass](#6-dynamic-provisioning-storageclass) | How StorageClass parameters drive provisioner behavior, reclaim policies, binding modes, and topology constraints. |
+| **07** | [Volume Snapshots & Cloning](#7-volume-snapshots-cloning) | The VolumeSnapshot API, how CSI drivers implement snapshot and restore, and operational patterns for backup. |
 | **08** | [AWS EBS CSI Driver](#8-aws-ebs-csi-driver) | EBS volume types, the EBS CSI controller and node plugin, IAM requirements, multi-attach limits, and topology constraints. |
-| **09** | [Ceph CSI — RBD and CephFS](#9-ceph-csi--rbd-and-cephfs) | How Ceph RBD maps to block volumes, CephFS for shared filesystem access, RADOS internals, and operational trade-offs. |
-| **10** | [CSI Comparison & Selection Guide](#10-csi-comparison--selection-guide) | Side-by-side comparison across access modes, performance, and a decision framework for driver and volume type selection. |
+| **09** | [Ceph CSI — RBD and CephFS](#9-ceph-csi-rbd-and-cephfs) | How Ceph RBD maps to block volumes, CephFS for shared filesystem access, RADOS internals, and operational trade-offs. |
+| **10** | [CSI Comparison & Selection Guide](#10-csi-comparison-selection-guide) | Side-by-side comparison across access modes, performance, and a decision framework for driver and volume type selection. |
 
 ---
 

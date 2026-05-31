@@ -1,9 +1,5 @@
 # Lab 03 — GitOps with Argo CD: Installation & Basics
 
-> **Difficulty**: Beginner | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
-
 ## 🎯 Objectives
 
 By the end of this lab, you will:
@@ -28,46 +24,14 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-                    ┌──────────────────────┐
-                    │    Git Repository     │
-                    │                      │
-                    │  ┌────────────────┐  │
-                    │  │ Kubernetes     │  │
-                    │  │ Manifests      │  │
-                    │  │ (YAML)         │  │
-                    │  └────────────────┘  │
-                    └──────────┬───────────┘
-                               │
-                     Watches   │  (every 3 min or webhook)
-                               │
-                    ┌──────────▼───────────┐
-                    │      Argo CD         │
-                    │                      │
-                    │  ┌────────────────┐  │
-                    │  │ Application    │  │
-                    │  │ Controller     │  │
-                    │  └───────┬────────┘  │
-                    │          │           │
-                    │  ┌───────▼────────┐  │
-                    │  │ Repo Server    │  │
-                    │  └───────┬────────┘  │
-                    │          │           │
-                    │  ┌───────▼────────┐  │
-                    │  │ API Server /   │  │
-                    │  │ Web UI         │  │
-                    │  └────────────────┘  │
-                    └──────────┬───────────┘
-                               │
-                     Reconcile │ (apply to cluster)
-                               │
-                    ┌──────────▼───────────┐
-                    │  Kubernetes Cluster   │
-                    │                      │
-                    │  Desired State ==     │
-                    │  Git State            │
-                    └──────────────────────┘
-```
+The GitOps delivery model relies on a pull-based synchronization workflow managed by Argo CD:
+
+1. **Git Repository (Source of Truth):** Developers commit Kubernetes manifests (YAML) representing the desired state.
+2. **Argo CD Controller (Observability & Sync):**
+   - **Repo Server:** Clones Git repos and parses manifests.
+   - **Application Controller:** Periodically checks Git (polls every 3 minutes or via webhooks) and monitors the live cluster.
+   - **API Server / Web UI:** Exposes visual management dashboards and administrative endpoints.
+3. **Target Kubernetes Cluster (Actual State):** Argo CD continuous reconciliation automatically applies git commits to keep the cluster synchronized.
 
 ---
 
@@ -436,25 +400,17 @@ argocd app diff guestbook
 
 #### Understand the Status Model
 
-```
-Sync Status:
-┌──────────┐     ┌───────────┐
-│ OutOfSync│────▶│  Syncing  │────▶  Synced  ✅
-└──────────┘     └───────────┘
-     ▲                                  │
-     │          drift detected          │
-     └──────────────────────────────────┘
+##### Sync Status Flow
+- **OutOfSync:** Live cluster differs from Git.
+- **Syncing:** Sync operation is actively running.
+- **Synced:** Live cluster perfectly matches the Git specification.
+- *Note:* If any configuration drift is subsequently detected on the cluster, the state transitions back to **OutOfSync**.
 
-Health Status:
-┌───────────┐    ┌────────────┐    ┌─────────┐
-│ Progressing│───▶│  Healthy   │    │ Degraded│
-└───────────┘    └────────────┘    └─────────┘
-                       │
-                       ▼
-                  ┌─────────┐
-                  │ Suspended│
-                  └─────────┘
-```
+##### Health Status States
+- **Progressing:** Resources are being created and validated (e.g., containers starting).
+- **Healthy:** Resources are running, active, and reporting successful readiness probes.
+- **Degraded:** Resources have failed to start or remain in an unhealthy loop (e.g., CrashLoopBackOff).
+- **Suspended:** Resource controllers are paused or scaled to zero.
 
 ---
 

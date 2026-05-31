@@ -1,9 +1,5 @@
 # Lab 02 — Kubernetes Foundation & Cluster Setup
 
-> **Difficulty**: Beginner | **Duration**: 2 hours | **Type**: Hands-On
-
----
-
 ## 🎯 Objectives
 
 By the end of this lab, you will:
@@ -28,34 +24,21 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                 Kubernetes Cluster                       │
-│                                                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │              Control Plane                        │  │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │  │
-│  │  │ API      │ │ etcd     │ │ Controller       │  │  │
-│  │  │ Server   │ │          │ │ Manager          │  │  │
-│  │  └──────────┘ └──────────┘ └──────────────────┘  │  │
-│  │  ┌──────────────────┐                             │  │
-│  │  │ Scheduler        │                             │  │
-│  │  └──────────────────┘                             │  │
-│  └───────────────────────────────────────────────────┘  │
-│                                                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │              Worker Nodes                         │  │
-│  │  ┌─────────────────┐  ┌─────────────────┐        │  │
-│  │  │    Node 1       │  │    Node 2       │        │  │
-│  │  │ ┌─────┐┌─────┐ │  │ ┌─────┐┌─────┐ │        │  │
-│  │  │ │Pod A││Pod B│ │  │ │Pod C││Pod D│ │        │  │
-│  │  │ └─────┘└─────┘ │  │ └─────┘└─────┘ │        │  │
-│  │  │  kubelet        │  │  kubelet        │        │  │
-│  │  │  kube-proxy     │  │  kube-proxy     │        │  │
-│  │  └─────────────────┘  └─────────────────┘        │  │
-│  └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
+A Kubernetes cluster is divided into two primary planes that decouple management from workload execution:
+
+### 1. Control Plane (The Brain)
+Coordinates all cluster operations and maintains desired resource state:
+- **API Server:** The front entry point of the cluster; accepts and validates administrative commands.
+- **etcd:** Consistent, highly available key-value store containing all cluster backing state.
+- **Controller Manager:** Continuously observes the cluster state and runs control loops to reconcile deltas.
+- **Scheduler:** Selects the healthiest and most appropriate worker node to run unscheduled Pods.
+
+### 2. Worker Nodes (The Muscle)
+Host the actual containers and workloads:
+- **Worker Nodes (Node 1 / Node 2):** Individual machine instances containing workloads.
+- **Pods (Pod A / Pod B / Pod C / Pod D):** The atomic unit of container execution.
+- **kubelet:** Node-level agent ensuring declared containers are running and healthy inside their pods.
+- **kube-proxy:** Manages network connection routing rules across host interfaces.
 
 ---
 

@@ -1,8 +1,5 @@
 # Lab 08 — Backstage: Setup & Software Catalog
 
-> **Difficulty**: Intermediate | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -31,51 +28,16 @@ By the end of this lab, you will:
 
 ### Backstage Architecture
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     Backstage App                        │
-│                                                          │
-│  ┌─────────────────────┐  ┌─────────────────────────┐   │
-│  │    Frontend (React)  │  │    Backend (Node.js)    │   │
-│  │    localhost:3000     │  │    localhost:7007       │   │
-│  │                      │  │                         │   │
-│  │  • Software Catalog  │  │  • Catalog API          │   │
-│  │  • Scaffolder UI     │  │  • Scaffolder Engine    │   │
-│  │  • TechDocs Viewer   │  │  • TechDocs Builder     │   │
-│  │  • Search UI         │  │  • Auth Providers       │   │
-│  │  • Custom Plugins    │  │  • Plugin Backend APIs  │   │
-│  └──────────┬───────────┘  └──────────┬──────────────┘   │
-│             │                         │                   │
-│             └────────────┬────────────┘                   │
-│                          │                                │
-│                ┌─────────▼──────────┐                     │
-│                │    Database        │                     │
-│                │  (SQLite / PG)     │                     │
-│                └────────────────────┘                     │
-└──────────────────────────────────────────────────────────┘
-```
+- **Frontend (React) at localhost:3000:** Handles the UI components, catalog views, scaffolding forms, and TechDocs pages.
+- **Backend (Node.js) at localhost:7007:** Exposes catalog REST APIs, runs the scaffolding orchestration engine, gathers TechDocs metadata, and interfaces with identity/auth providers.
+- **Database (SQLite / PostgreSQL):** Backing the catalog backend, storing plugin states and entity lists.
 
 ### Software Catalog Entity Model
 
-```
-┌──────────┐     owns      ┌──────────────┐
-│  Group   │───────────────▶│  Component   │
-│ (Team)   │                │ (Service)    │
-└──────────┘                └──────┬───────┘
-     │                             │
-     │ has member            provides/consumes
-     ▼                             │
-┌──────────┐                ┌──────▼───────┐
-│   User   │                │     API      │
-└──────────┘                └──────────────┘
-                                   │
-                            depends on
-                                   │
-                            ┌──────▼───────┐
-                            │   Resource   │
-                            │  (Database)  │
-                            └──────────────┘
-```
+- **Group (Team) / User:** Groups have member Users, and own Components.
+- **Component (Service):** The software entity providing or consuming APIs, owned by a Group, and depending on resources.
+- **API:** Defined interfaces (e.g., OpenAPI, gRPC) provided or consumed by Components.
+- **Resource (Infrastructure):** Underlying infrastructure dependency (e.g., databases, buckets) that Components depend on.
 
 ---
 

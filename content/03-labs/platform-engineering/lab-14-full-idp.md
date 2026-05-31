@@ -1,8 +1,5 @@
 # Lab 14 — Full IDP: Backstage + Argo CD + Crossplane End-to-End
 
-> **Difficulty**: Advanced | **Duration**: 3.5 hours | **Type**: Hands-On Capstone
-
----
 
 ## 🎯 Objectives
 
@@ -28,55 +25,11 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture — The Complete Picture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                  INTERNAL DEVELOPER PLATFORM                 │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  1️⃣  BACKSTAGE PORTAL                                 │  │
-│  │     Developer fills template form:                     │  │
-│  │     • App name, team, environment, tier                │  │
-│  │     → Generates: K8s manifests + Crossplane Claims     │  │
-│  │     → Commits to Git repository                        │  │
-│  └───────────────────────┬────────────────────────────────┘  │
-│                          │                                   │
-│                          ▼                                   │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  2️⃣  GIT REPOSITORY (Source of Truth)                  │  │
-│  │     /apps/{app-name}/                                  │  │
-│  │       ├── deployment.yaml                              │  │
-│  │       ├── service.yaml                                 │  │
-│  │       └── crossplane-claim.yaml                        │  │
-│  └───────────────────────┬────────────────────────────────┘  │
-│                          │                                   │
-│                          ▼                                   │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  3️⃣  ARGO CD (GitOps Reconciliation)                   │  │
-│  │     • Detects new commit                               │  │
-│  │     • Syncs K8s manifests to cluster                   │  │
-│  │     • Syncs Crossplane Claims to cluster               │  │
-│  └───────────────────────┬────────────────────────────────┘  │
-│                          │                                   │
-│                          ▼                                   │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  4️⃣  CROSSPLANE (Infrastructure Provisioning)          │  │
-│  │     • Receives Claims from Argo CD sync                │  │
-│  │     • Executes Compositions                            │  │
-│  │     • Provisions namespaces, deployments, services     │  │
-│  │     • Continuous reconciliation                        │  │
-│  └───────────────────────┬────────────────────────────────┘  │
-│                          │                                   │
-│                          ▼                                   │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  5️⃣  RUNNING INFRASTRUCTURE                            │  │
-│  │     ✅ Namespace created                               │  │
-│  │     ✅ Application deployed                            │  │
-│  │     ✅ Database provisioned                            │  │
-│  │     ✅ Network policies applied                        │  │
-│  │     ✅ Status visible in Backstage                     │  │
-│  └────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
-```
+1. **Backstage Portal (Developer Request):** Developer fills out a self-service template specifying app parameters. Backstage generates code repositories, manifests, and Crossplane claims, and commits them to Git.
+2. **Git Repository (Source of Truth):** Holds versioned templates, manifests, and claims.
+3. **Argo CD (GitOps Delivery):** Detects new commits and synchronizes both Kubernetes workloads and Crossplane claims into the cluster.
+4. **Crossplane (Infrastructure Provisioning):** Resolves claims, executes composed resource bindings, and configures physical services, networking, and databases.
+5. **Observed Running Infrastructure:** Workloads are fully operational, network policies are active, and live environment health status syncs back to the Backstage catalog.
 
 ---
 

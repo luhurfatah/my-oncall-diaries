@@ -1,8 +1,5 @@
 # Lab 09 — Backstage: Software Templates (Golden Paths)
 
-> **Difficulty**: Intermediate | **Duration**: 2.5 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 

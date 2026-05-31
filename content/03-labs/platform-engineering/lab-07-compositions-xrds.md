@@ -1,8 +1,5 @@
 # Lab 07 — Crossplane: Compositions & XRDs
 
-> **Difficulty**: Intermediate | **Duration**: 3 hours | **Type**: Hands-On
-
----
 
 ## 🎯 Objectives
 
@@ -26,36 +23,13 @@ By the end of this lab, you will:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Platform Team Creates                     │
-│                                                             │
-│  ┌─────────────────────┐    ┌────────────────────────────┐  │
-│  │         XRD          │    │       Composition          │  │
-│  │  (API Definition)    │    │  (Implementation)          │  │
-│  │                      │    │                            │  │
-│  │  "What developers    │    │  "How to build it from     │  │
-│  │   can request"       │    │   managed resources"       │  │
-│  │                      │    │                            │  │
-│  │  - databaseSize      │    │  XRD ──▶ Namespace         │  │
-│  │  - engine            │◄──▶│  XRD ──▶ Deployment(PG)    │  │
-│  │  - environment       │    │  XRD ──▶ Service           │  │
-│  │                      │    │  XRD ──▶ ConfigMap         │  │
-│  └─────────────────────┘    └────────────────────────────┘  │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                    Developer Uses                           │
-│                                                             │
-│  ┌─────────────────────┐    ┌────────────────────────────┐  │
-│  │       Claim          │    │    Created Resources       │  │
-│  │  (Request)           │───▶│                            │  │
-│  │                      │    │  ✅ Namespace              │  │
-│  │  "I need a small     │    │  ✅ PostgreSQL Deployment  │  │
-│  │   PostgreSQL DB      │    │  ✅ Service                │  │
-│  │   for dev"           │    │  ✅ ConfigMap with conninfo│  │
-│  └─────────────────────┘    └────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+### Platform Team (Creators)
+*   **XRD (API Definition):** Defines the parameters developers can request (e.g., `databaseSize`, `engine`, `environment`).
+*   **Composition (Implementation):** Maps the XRD parameters to actual infrastructure resources (e.g., creates Namespace, Deployment, Service, ConfigMap).
+
+### Developer (Consumers)
+*   **Claim (Request):** Developer declares a high-level request (e.g., "I need a small PostgreSQL database for development").
+*   **Provisioned Resources:** Crossplane translates the claim into the final manifests and verifies their readiness (Namespace, PostgreSQL Deployment, Service, ConfigMap containing database credentials).
 
 ---
 
@@ -72,25 +46,16 @@ By the end of this lab, you will:
 ### XRD → Composition → Claim Flow
 
 ```
-Developer writes a Claim:          Platform team already defined:
-┌───────────────────────┐          ┌─────────────────────────┐
-│ kind: DatabaseClaim   │          │ XRD: DatabaseClaim      │
-│ spec:                 │          │   spec.versions[0]:     │
-│   size: small         │──────▶   │     openAPIV3Schema:    │
-│   engine: postgresql  │          │       properties:       │
-│   environment: dev    │          │         size, engine,   │
-└───────────────────────┘          │         environment     │
-                                   └───────────┬─────────────┘
-                                               │
-                                               ▼
-                                   ┌─────────────────────────┐
-                                   │ Composition:            │
-                                   │   resources:            │
-                                   │   - Namespace           │
-                                   │   - Deployment (PG)     │
-                                   │   - Service             │
-                                   │   - ConfigMap           │
-                                   └─────────────────────────┘
+- **Developer Claim:** A simple manifest requesting a database:
+  ```yaml
+  kind: DatabaseClaim
+  spec:
+    size: small
+    engine: postgresql
+    environment: dev
+  ```
+- **XRD Validation Schema:** Ensures the claim matches defined parameters (`size`, `engine`, `environment`).
+- **Composition Resolution:** Renders the actual managed resources needed to fulfill the request (Namespace, PostgreSQL Deployment, Service, ConfigMap).
 ```
 
 ---

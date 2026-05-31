@@ -1,21 +1,19 @@
 # Centralized Egress — Transit Gateway & NAT Gateway
 
-Production centralized internet egress architecture on AWS using Transit Gateway (TGW) and NAT Gateway. Covers TGW routing design, NAT Gateway patterns, DNS, security inspection, failure modes, and the non-obvious operational gotchas of running egress at scale across many accounts.
-
 ## Table of Contents
 
 | Section | Topic | Description |
 | :---: | :--- | :--- |
-| **01** | [Architecture Overview & Design Decisions](#1-architecture-overview--design-decisions) | The problems centralized egress solves, traffic flows, and architectural variants. |
-| **02** | [Transit Gateway — Deep Configuration](#2-transit-gateway--deep-configuration) | Creating the TGW, sharing via RAM, route tables, and manual VPC acceptance rules. |
+| **01** | [Architecture Overview & Design Decisions](#1-architecture-overview-design-decisions) | The problems centralized egress solves, traffic flows, and architectural variants. |
+| **02** | [Transit Gateway — Deep Configuration](#2-transit-gateway-deep-configuration) | Creating the TGW, sharing via RAM, route tables, and manual VPC acceptance rules. |
 | **03** | [Egress VPC Design](#3-egress-vpc-design) | Designing public and TGW-only subnets, EIPs, and AZ-local NAT routing tables. |
-| **04** | [NAT Gateway — Patterns & Gotchas](#4-nat-gateway--patterns--gotchas) | Limits (55k ports), critical performance metrics, and NAT instance trade-offs. |
-| **05** | [TGW Routing — Advanced Patterns](#5-tgw-routing--advanced-patterns) | Route propagation vs static routing, and complete cross-account configurations. |
+| **04** | [NAT Gateway — Patterns & Gotchas](#4-nat-gateway-patterns-gotchas) | Limits (55k ports), critical performance metrics, and NAT instance trade-offs. |
+| **05** | [TGW Routing — Advanced Patterns](#5-tgw-routing-advanced-patterns) | Route propagation vs static routing, and complete cross-account configurations. |
 | **06** | [DNS Architecture for Centralized Egress](#6-dns-architecture-for-centralized-egress) | Routing spoke query traffic to outbound Route 53 resolvers in Shared Services. |
 | **07** | [Security Inspection in the Egress Path](#7-security-inspection-in-the-egress-path) | Redirection paths and stateful appliance mode with AWS Network Firewall. |
 | **08** | [Spoke VPC Design](#8-spoke-vpc-design) | Enforcing zero internet paths locally and bypassing endpoints for standard S3/DynamoDB. |
-| **09** | [Failure Modes & Resilience](#9-failure-modes--resilience) | Failover matrices, NAT GW AZ failovers, and handling offline Network accounts. |
-| **10** | [Cost Model & Optimization](#10-cost-model--optimization) | TGW/NAT base charges, data processing fees, and optimization strategies. |
+| **09** | [Failure Modes & Resilience](#9-failure-modes-resilience) | Failover matrices, NAT GW AZ failovers, and handling offline Network accounts. |
+| **10** | [Cost Model & Optimization](#10-cost-model-optimization) | TGW/NAT base charges, data processing fees, and optimization strategies. |
 | **11** | [Day-2 Operations](#11-day-2-operations) | VPC Flow Log analytics via Athena, routing troubleshooting, and quarterly review drills. |
 
 ---
