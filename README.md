@@ -1,133 +1,118 @@
 # 📓 my Oncall Diaries
 
-> A personal knowledge base and engineering blog — built for engineers who are tired of re-learning the same lessons twice.
+[![License](https://img.shields.io/github/license/luhurfatah/my-oncall-diaries?style=flat-square&color=4169E1)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Static%20Hosting-lightgrey?style=flat-square)](https://pages.github.com/)
 
-Stop digging through old Slack threads and half-finished Notion pages. **my Oncall Diaries** is a lightweight, fully static site that turns your Markdown notes into a searchable, navigable knowledge base — deployable to GitHub Pages in minutes.
+A static knowledge base and engineering notebook. **my Oncall Diaries** is designed for engineers who want a lightning-fast, searchable, and distraction-free platform to organize runbooks, cheat sheets, lab notes, and portfolios using pure Markdown.
 
-🌐 **Live Demo**: [View the site on GitHub Pages](https://oncall-diaries.luhurfatah.com/)
-
----
-
-## ✨ What's Inside
-
-The knowledge base is organized into four sections:
-
-| Section | Description |
-|---|---|
-| `01-knowledge-base/` | Deep-dive technical guides — AWS, Kubernetes, SRE, CI/CD, IaaC |
-| `02-interview-prep/` | Cheat sheets and interview Q&A for cloud and platform engineering roles |
-| `03-labs/` | Hands-on platform engineering labs (Backstage, Crossplane, Argo CD) |
-| `99-cv/` | Professional CV in Markdown format |
+🌐 **Live Demo**: [oncall-diaries.luhurfatah.com](https://oncall-diaries.luhurfatah.com/)
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- **Markdown Native** — Write everything in standard `.md` files. No CMS, no database.
-- **Instant Search** — Filter and search across all topics and files in real time.
-- **Syntax Highlighting** — Built-in support for HCL, YAML, Bash, Dockerfile, Python, and more.
-- **One-Click Copy** — Copy any code snippet directly from the rendered page.
-- **Auto-Navigation** — The sidebar is generated automatically from your folder structure.
-- **Fully Static** — No server needed. Runs on GitHub Pages out of the box.
-- **Dark / Light Mode** — Theme toggle included.
+- **Lightning Fast & Static** — Zero database queries. Runs purely on pre-rendered static HTML, CSS, and JS.
+- **Instant Global Search** — Search and filter across all folders, topics, and files in real-time.
+- **Modern Aesthetics** — Clean layout, elegant typography, responsive grid, and responsive dark/light mode toggle.
+- **Auto-Generated Navigation** — Sidebar and directories are dynamically generated based on your `content/` folder structure.
+- **Syntax Highlighting** — Native styling for HCL (Terraform/Terragrunt), YAML, Bash, Python, Dockerfiles, and JSON.
+- **One-Click Code Copy** — Interactive copy button on all code snippets.
+- **Serverless Deployment** — Perfect for GitHub Pages, Cloudflare Pages, AWS S3, or Vercel.
 
 ---
 
-## 🛠️ Fork & Run Your Own Copy
+## 📂 Directory Structure
 
-Want to use this as your own knowledge base? Here's how to get started in under 5 minutes.
+The content is logically organized into dedicated modules:
+
+| Directory | Purpose |
+| :--- | :--- |
+| `content/01-knowledge-base/` | In-depth technical guides (AWS, Kubernetes, SRE, CI/CD, IaC) |
+| `content/02-interview-prep/` | Dynamic cheat sheets and core platform engineering Q&A |
+| `content/03-labs/` | Step-by-step platform engineering lab tutorials |
+| `content/99-cv/` | Professional curriculum vitae formatted in Markdown |
+
+---
+
+## 🛠️ Getting Started (Local Development)
+
+Launch your personal knowledge base locally in under 5 minutes.
 
 ### Prerequisites
+* **Git**
+* **Node.js** v20+
 
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/) v20+
-
-### Step 1 — Fork this Repository
-
-Click the **Fork** button at the top-right of this page on GitHub. This creates your own copy under your account.
-
-### Step 2 — Clone Your Fork
-
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/luhurfatah/my-oncall-diaries.git
 cd my-oncall-diaries
 ```
 
-### Step 3 — Install Dependencies
-
+### 2. Install Dependencies
 ```bash
 cd app
 npm install
 ```
 
-### Step 4 — Add Your Own Content
-
-Drop your Markdown files into the `content/` folder. Organize them into subfolders — the folder names become your navigation sections automatically.
-
+### 3. Add Your Content
+Add or modify `.md` files inside the `content/` directory. Subdirectories automatically map to navigation categories.
 ```
 content/
-├── aws/
-│   └── vpc-troubleshooting.md
-├── kubernetes/
-│   └── pod-scheduling.md
-└── my-runbooks/
-    └── on-call-checklist.md
+├── 01-knowledge-base/
+│   └── aws-vpc-peering.md
+├── 02-interview-prep/
+│   └── kubernetes-networking.md
+└── 99-cv/
+    └── resume.md
 ```
 
-### Step 5 — Preview Locally
-
+### 4. Build and Preview
+Build the static files:
 ```bash
-# From the app/ directory
 npm run build
 ```
 
-Then serve the static output with any static server:
-
+Serve the generated static site locally:
 ```bash
-# Option A — using npx serve
+# Option A: using npx serve
 npx serve public
 
-# Option B — using Python (no install needed)
+# Option B: using python3
 cd public && python3 -m http.server 3000
 ```
-
-Open **http://localhost:3000** in your browser.
+Visit **http://localhost:3000** in your browser.
 
 ---
 
-## 🌐 Deploy to GitHub Pages (Free Hosting)
+## 🌐 Automated Deployment (GitHub Pages)
 
-This repo ships with a ready-to-use GitHub Actions pipeline. Every push to `main` automatically rebuilds and redeploys your site.
+This repository includes a pre-configured GitHub Actions pipeline (`.github/workflows/deploy.yml`) to automatically rebuild and host your site for free.
 
-### One-time Setup
-
-1. Go to your forked repo on GitHub.
-2. Click **Settings** → **Pages** (left sidebar).
+1. **Fork** this repository.
+2. Go to your repository **Settings** → **Pages** (left sidebar).
 3. Under **Build and deployment**, set the **Source** to **GitHub Actions**.
-4. Push any change to the `main` branch (or trigger the workflow manually from the **Actions** tab).
+4. Push any changes to the `main` branch to trigger an automatic deployment.
 
-Your site will be live at:
+Your site will automatically go live at:
 ```
-https://<your-username>.github.io/myoncalldiaries/
+https://<your-github-username>.github.io/myoncalldiaries/
 ```
-
-That's it. No servers, no cloud bills.
 
 ---
 
-## 📁 Repository Structure
+## 📁 Repository Layout
 
 ```
 myoncalldiaries/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml       # GitHub Actions CI/CD pipeline
+│       └── deploy.yml       # Automated GitHub Actions build & deploy pipeline
 ├── app/
-│   ├── build.js             # Scans content/, generates tree.json, copies assets
-│   ├── server.js            # Optional local dev server
-│   ├── package.json
-│   └── public/              # Generated static site output (served by GitHub Pages)
-├── content/                 # ✏️  YOUR MARKDOWN NOTES GO HERE
+│   ├── build.js             # Static site generator (scans content/, compiles directories)
+│   ├── server.js            # Optional development server
+│   ├── package.json         # Build tool dependencies
+│   └── public/              # Target output folder containing the static HTML/CSS site
+├── content/                 # Write your Markdown documents here
 │   ├── 01-knowledge-base/
 │   ├── 02-interview-prep/
 │   ├── 03-labs/
@@ -137,12 +122,6 @@ myoncalldiaries/
 
 ---
 
-## 🤝 Contributing
-
-This is a personal knowledge base, but PRs that improve the app itself (search, rendering, UI) are welcome. Open an issue first to discuss what you'd like to change.
-
----
-
 ## 📄 License
 
-MIT — free to fork, adapt, and make your own.
+Distributed under the MIT License. Feel free to fork, adapt, and build your own.
