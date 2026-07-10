@@ -146,6 +146,11 @@
         "path": "01-knowledge-base/k8s",
         "children": [
           {
+            "name": "ebpf-cilium.md",
+            "type": "file",
+            "path": "01-knowledge-base/k8s/ebpf-cilium.md"
+          },
+          {
             "name": "how-cni-works.md",
             "type": "file",
             "path": "01-knowledge-base/k8s/how-cni-works.md"
