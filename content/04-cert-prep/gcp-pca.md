@@ -182,13 +182,33 @@ Cluster Autoscaler only scales nodes within pools you defined; NAP creates entir
 - **Cloud Service Mesh** (managed Istio-based mesh): mutual TLS between services, traffic splitting/canarying, and observability across a fleet — comes up when a scenario wants zero-trust service-to-service communication or fine-grained traffic shifting inside GKE rather than at the external LB layer.
 - **Multi-cluster Gateway/Ingress**: a single external LB config that routes across clusters/regions — the fleet-level equivalent of a global external Application LB, but load-balancing across GKE clusters instead of instance groups.
 
-### Mapping compute to platform products (explicit exam subsection 1.3)
-The guide now explicitly calls out choosing between **GKE, Cloud Run, and Cloud Run functions** as its own tested skill, not an afterthought:
-- Cloud Run functions: event-driven, short-lived, scale-to-zero (Altostrat's transcoding/metadata triggers are the textbook example)
-- Cloud Run (services): stateless containers, HTTP-driven, simpler than GKE when you don't need full orchestration control
-- GKE: when you need fine-grained orchestration, custom networking, stateful workloads, or multi-cluster/hybrid consistency
+### Mapping compute to platform products (explicit exam subsection 1.3) — full comparison
 
----
+The guide now explicitly calls out choosing between **Compute Engine, GKE, Cloud Run, Cloud Run functions, and App Engine** as its own tested skill, not an afterthought. This is one of the highest-yield "pick the right platform" tables to memorize:
+
+| | Compute Engine | GKE Standard | GKE Autopilot | Cloud Run (services) | Cloud Run Jobs | Cloud Run functions | App Engine Standard | App Engine Flexible |
+|---|---|---|---|---|---|---|---|---|
+| Abstraction level | Lowest — full VM control | Node/cluster-level control | Pod-level only, nodes fully managed | Container, fully serverless | Container, run-to-completion | Function, fully serverless | Sandboxed runtime, fully serverless | VM-backed container, managed |
+| Billing unit | Per VM/instance-hour | Per node-hour (+ control plane) | Per pod resource requested | Per request / CPU+memory during processing | Per job execution | Per invocation + resources | Per instance-hour | Per instance-hour |
+| Scale-to-zero | No | No (nodes) | No (still pod-based minimums) | **Yes** | N/A (runs then stops) | **Yes** | Yes (Standard only) | No |
+| Cold start | N/A (always running) | N/A | Minutes for new node capacity | Seconds | Seconds–minutes | Can be notable, esp. larger deps | Fast (sandboxed) | Slow (VM boot) |
+| Stateful workloads | Yes, full control | Yes (StatefulSets, PVCs) | Yes, but with Autopilot's resource constraints | No — must be stateless | No — task-oriented, not long-running | No | No | Limited |
+| Custom networking / DaemonSets / node-level access | N/A | Yes | **No** — restricted by design | No | No | No | No | Limited |
+| Event/message consumption (Kafka-style continuous pull) | Yes, self-managed | Yes | Yes | No (push/HTTP-triggered only) | Via Pub/Sub push or Eventarc trigger | Yes (event-driven trigger) | Limited | Limited |
+| GPU support | Full range (A2/A3, etc.) | Full range, custom node pools | L4 GPUs supported, broader accelerators restricted | Up to NVIDIA L4 | Up to NVIDIA L4 | No | No | No |
+| Best fit | Legacy/non-containerized apps, licensing needs, sole-tenant/HPC | 10+ microservices, need Kubernetes primitives (CRDs, operators, service mesh, network policies) | Same as Standard but "least ops overhead" is an explicit requirement | Stateless HTTP APIs, bursty/variable traffic, fast iteration | Batch/cron-style containerized tasks that run to completion | Event-driven glue code: file-upload triggers, Pub/Sub handlers, webhook responders | Simple web apps wanting fastest possible scale-to-zero without containers | Custom runtime/language needs beyond Standard's sandboxed set, still App-Engine-managed |
+
+**Decision heuristics for the exam:**
+- "Stateless container, bursty/variable traffic, fastest path to production, minimal ops" → **Cloud Run**, and it's usually the *default* recommended starting point in current guidance — you can graduate to GKE later since the workload is already containerized.
+- "Short-lived code responding to one event (upload, Pub/Sub message, webhook)" → **Cloud Run functions** — this is the mechanism behind Altostrat Media's upload-triggered transcoding/metadata pipeline.
+- "Need Kubernetes-specific primitives" (DaemonSets, CRDs/operators, custom node config, service mesh, privileged workloads) → **GKE**, and specifically **Standard** if Autopilot's restrictions (no DaemonSets, limited node-level access) block the requirement.
+- "Need Kubernetes but want the least operational overhead" and nothing above rules it out → **GKE Autopilot** is the exam's preferred "least ops" answer.
+- "Continuous, always-on message consumption from a pull-based/Kafka-style system" → Cloud Run doesn't fit (push/HTTP-triggered only) — this needs **GKE** or **Compute Engine**.
+- "Batch job that runs to completion, not an HTTP service" → **Cloud Run Jobs**, triggered by Cloud Scheduler, Pub/Sub via Eventarc, or Workflows.
+- "Existing non-containerized application, specialized licensing, or hardware needs" → **Compute Engine**, the fallback when nothing above fits.
+- App Engine is legacy-but-supported — expect it mainly as a **wrong-answer distractor** or in scenarios explicitly describing an existing App Engine app that must keep working (ties back to the Firestore Datastore-mode compatibility story above), not as the recommended new-build answer in v6.1.
+
+
 
 ## 7. Storage, In Depth
 
@@ -203,13 +223,32 @@ The guide now explicitly calls out choosing between **GKE, Cloud Run, and Cloud 
 
 Regional PD replicates synchronously across two zones for HA at the disk layer, but it is not a backup — snapshots remain necessary for point-in-time recovery and cross-region durability.
 
-### Cloud SQL vs AlloyDB vs Spanner vs Bigtable
-| | Cloud SQL | AlloyDB | Spanner | Bigtable |
-|---|---|---|---|---|
-| Model | Relational (MySQL/Postgres/SQL Server) | PostgreSQL-compatible | Relational, horizontally scalable | Wide-column NoSQL |
-| Scale | Vertical, read replicas | Vertical + read pool, analytics-heavy Postgres | Horizontal, petabyte scale | Horizontal, petabyte scale, very high throughput |
-| Consistency | Strong (single region) | Strong | Strong, globally (multi-region config) | Eventually consistent by default, strong within a row |
-| When it's the answer | Standard transactional app, single-region OK, cost matters | Postgres workload needing analytics performance without a separate warehouse | Need global strong consistency + relational semantics + massive scale | Extremely high write throughput, time-series/IoT — this is the KnightMotives telemetry pattern |
+### The full GCP database decision table (all managed DB tech, not just the classic 4)
+| | Cloud SQL | AlloyDB | Spanner | Bigtable | Firestore (Native mode) | Firestore (Datastore mode) | Memorystore | BigQuery |
+|---|---|---|---|---|---|---|---|---|
+| Model | Relational (MySQL/Postgres/SQL Server) | PostgreSQL-compatible | Relational, horizontally scalable | Wide-column NoSQL | Document NoSQL | Document NoSQL (Datastore API) | In-memory key-value (Valkey/Redis/Memcached) | Columnar analytical warehouse |
+| Scale | Vertical, read replicas | Vertical + read pool | Horizontal, petabyte scale | Horizontal, petabyte scale, very high throughput | Horizontal autoscale, millions of concurrent clients | Horizontal autoscale, millions of writes/sec | In-memory, up to 250 nodes (Valkey/Redis Cluster) | Serverless, storage/compute scale independently |
+| Consistency | Strong (single region) | Strong | Strong, globally (multi-region config) | Eventually consistent by default, strong within a row | Strongly consistent, ACID transactions | Strongly consistent (removed legacy eventual-consistency/entity-group limits) | N/A (cache, not source of truth) | Strong per-table, eventual across some replicated read paths |
+| Availability SLA | 99.95% regional / 99.99% HA | 99.99% regional HA | 99.999% multi-region | 99.9%–99.999% depending on replication | 99.999% multi-region / 99.99% regional | Same as Native mode | 99.9% standalone / 99.99% cluster | N/A (serverless) |
+| When it's the answer | Standard transactional app, single-region OK, cost matters | Postgres workload needing analytics performance without a separate warehouse | Global strong consistency + relational semantics + massive scale | Extremely high write throughput, time-series/IoT — the KnightMotives telemetry pattern | Mobile/web apps needing real-time sync, offline support, flexible document schema | Existing App Engine/Datastore-API workload migrating in with zero code change | Sub-millisecond caching/session layer in front of a system of record — never the system of record itself | Analytics/BI over large historical datasets, not transactional workloads |
+
+### Firestore — Native mode vs. Datastore mode, deep dive
+Firestore is the current generation of what used to be Cloud Datastore; both modes run on the same underlying storage engine but expose different APIs and capabilities. **This choice is made once per database and is difficult to reverse** (you can only switch mode while the database is empty) — a classic exam "pick the constraint that can't be undone" detail.
+- **Native mode**: the modern default, recommended for **all new applications** (server, mobile, web). Document/collection model, real-time listeners that push changes to connected clients, offline support with automatic sync in mobile/web SDKs. This is the answer whenever a scenario mentions live UI updates, offline-first mobile apps, or Firebase integration (Altostrat Media's or Cymbal Retail's customer-facing apps are the natural fit).
+- **Datastore mode**: recommended **only** when an application already depends on the legacy Datastore API (entities/kinds/ancestors instead of documents/collections) — e.g., a lift-and-shift of an existing App Engine app. No real-time listeners, no offline support, but removes old Datastore limitations (all queries now strongly consistent, transactions no longer restricted to ancestor queries/25 entity groups).
+- Both modes share pricing structure and available locations (regional or multi-region); multi-region gives a materially higher availability SLA (99.999% vs. 99.99%) and survives a full regional outage — the answer whenever a scenario demands surviving the loss of an entire region for this tier of database.
+- **Don't confuse Firestore with Bigtable**: both are "NoSQL," but Firestore is for **application-facing, flexible-schema, document-shaped data at moderate-to-high scale with client SDK support**; Bigtable is for **massive, high-throughput, single-row-key time-series/analytical workloads** with no client-side sync/offline story. A mobile app's user profiles/game state → Firestore. Millions of IoT sensor readings/minute → Bigtable.
+
+### Memorystore — deep dive (in-memory caching layer)
+Memorystore is GCP's fully managed in-memory data store family — never a system of record, always a caching/session layer in front of one (Cloud SQL, Spanner, Firestore, etc.).
+- **Memorystore for Valkey**: the current forward path. Valkey is the open-source, BSD-licensed fork of Redis (post Redis's 2024 license change), fully wire-compatible with Redis clients. Supports Cluster Mode Enabled/Disabled, zero-downtime scaling to 250 nodes/terabytes of keyspace, PSC connectivity, and even approximate/exact nearest-neighbor vector search for gen-AI use cases (relevant to Altostrat Media/Cymbal Retail's recommendation and conversational-agent features needing a low-latency vector cache).
+- **Memorystore for Redis** / **Redis Cluster**: still supported but frozen at Redis 7.2 (Google is not tracking newer Redis releases due to the licensing change) — pick Valkey for new builds unless there's a specific reason to stay on Redis proper.
+- **Memorystore for Memcached**: being phased out — **no longer a recommended service as of January 2026**, can't be created in new projects after February 2027. If a scenario describes a *new* simple key-value cache requirement, Memcached is now a wrong-answer trap; Valkey is the intended replacement even for pure cache-only workloads.
+- Exam framing: "reduce read load on our primary database with sub-millisecond latency" → Memorystore (specify Valkey for anything new); "we need a durable system of record" → Memorystore is never correct, regardless of how the question is worded.
+
+### Beyond the core managed lineup (know these exist, low-depth needed)
+- **Bare Metal Solution**: dedicated bare-metal hardware in a GCP-adjacent facility for workloads like Oracle databases that can't run on standard virtualized Compute Engine — the answer whenever a scenario explicitly needs to lift-and-shift a licensed Oracle DB into a GCP-adjacent environment without re-platforming.
+- **MongoDB Atlas on Google Cloud**: a third-party, Google-supported managed MongoDB offering (not a native GCP service) — comes up if a scenario has an existing MongoDB-based application and wants to stay on that data model while moving infrastructure to GCP, rather than migrating to Firestore.
 
 ### BigQuery internals worth knowing cold
 - Storage and compute are billed/scaled separately — "just add more compute" is never the answer to a BigQuery cost problem
@@ -434,19 +473,31 @@ Standard IAM is **additive-only by design**: if any binding anywhere in the hier
 - Ordering keys: order within a key, parallel across keys
 - **Batching vs. latency tradeoff**: publisher client batching improves throughput but adds latency waiting for a batch to fill/timeout — reducing/disabling batch settings is the answer whenever a scenario explicitly wants *lower publishing latency* (this exact tradeoff appears as a documented sample question under the current EHR Healthcare case)
 
-### Dataflow / Dataproc
-| | Dataproc | Dataflow |
-|---|---|---|
-| Underlying tech | Managed Hadoop/Spark | Managed Apache Beam |
-| Best fit | Lift-and-shift existing Spark/Hadoop jobs | New pipelines, unified batch+streaming |
-| Cluster management | You size/manage (or autoscaling policies) | Fully serverless |
-| Exam signal | "We already have Spark jobs, minimal rewrite" | "Building something new" / "batch and streaming in one model" |
+### Dataflow / Dataproc / Dataproc Serverless / Data Fusion
+| | Dataproc (clusters) | Dataproc Serverless | Dataflow | Data Fusion |
+|---|---|---|---|---|
+| Underlying tech | Managed Hadoop/Spark/Hive/Pig | Managed Spark, no cluster to size | Managed Apache Beam | Visual, code-optional pipeline builder (CDAP-based) |
+| Cluster management | You size/manage (or use autoscaling policies) | None — submit a job, Google provisions/tears down automatically | Fully serverless | Fully managed, visual canvas |
+| Billing | Per VM instance-hour, **charged even while idle** | Pay only for compute used during job execution (Dataflow-like) | Pay for vCPU-hours/GB-hours actually used, autoscaled | Per-instance + pipeline execution |
+| Best fit | Lift-and-shift existing Spark/Hadoop/Hive jobs with heavy custom tuning | Same Spark ecosystem, but "don't want to manage clusters" | New pipelines, unified batch+streaming, event-time windowing/stateful processing | Non-engineers building ETL visually, need built-in lineage/governance UI |
+| Exam signal | "We already have Spark jobs, minimal rewrite, need fine cluster control" | "Spark workload, but avoid idle cluster cost and cluster-lifecycle ops" | "Building something new," "need both batch and streaming in one model," complex transforms | "Visual pipeline builder," "minimal coding," "need native lineage" |
+
+**Dataproc cost gotcha**: a standard Dataproc cluster **bills per VM-hour even when idle** between jobs — if a scenario stresses unpredictable/intermittent Spark workloads and cost sensitivity, **Dataproc Serverless** (not classic Dataproc) is usually the better-fitting answer, since it only bills for the execution window itself, much like Dataflow.
+
+**Dataflow specifics worth knowing cold:**
+- Apache Beam under the hood — pipelines are portable across runners in theory, sometimes framed as the "avoid lock-in" answer for data pipelines.
+- GPU support exists for ML-inference-in-pipeline use cases (e.g., running model inference as a pipeline stage) — relevant if a scenario wants real-time enrichment of a streaming pipeline with a model call rather than a separate downstream step.
+- Templates (classic and Flex) let non-engineers launch pre-built parameterized pipelines without writing code — the answer for "let analysts run ETL jobs without writing code," distinct from Data Fusion's fully visual canvas.
+- Dataflow commits pipeline results exactly once even though user code can be retried — side effects in custom transforms calling external services must be made idempotent, a subtle correctness gotcha in "why did my external API get called twice" scenarios.
 
 ### Datastream + Dataflow (Cymbal Retail's signature pattern)
-Continuous CDC replication from siloed on-prem/legacy databases into BigQuery to build a unified analytics view — the correct answer over manual nightly file dumps or federated queries when the requirement is an ongoing consolidated warehouse.
+Continuous CDC (change data capture) replication from siloed on-prem/legacy databases into BigQuery or Cloud Storage to build a unified analytics view — the correct answer over manual nightly file dumps or federated queries when the requirement is an **ongoing, low-latency consolidated warehouse**, not a one-time migration. Datastream is the ingestion/CDC layer; Dataflow (or a native BigQuery load) is often paired with it for transformation before landing in BigQuery.
 
-### Composer (managed Airflow)
-DAG-based orchestration across multiple GCP services/external systems; orchestrates sequence and dependencies, doesn't do the processing itself.
+### Composer (managed Airflow) — deep dive
+- Composer runs on GKE under the hood, with prebuilt operators for BigQuery, Dataflow, Dataproc, Cloud Storage, and more — it **orchestrates** the sequence and dependencies between jobs across all these services; it does not do the actual data processing itself.
+- The correct answer whenever a scenario needs **DAG-based dependency management across multiple heterogeneous tools** — e.g., "run a Dataproc job, then load results to BigQuery, then trigger a Dataflow pipeline, with retries and SLA alerting on the whole chain."
+- **Cloud Workflows + Cloud Scheduler** is the lighter-weight alternative when a scenario doesn't need full Airflow DAG complexity — a good "is Composer over-engineered here" distractor check: if the pipeline is a simple linear sequence with no complex dependency graph, Workflows is often the leaner, cheaper answer over standing up a full Composer environment.
+- Composer is explicitly **less serverless than Dataflow** — you're still responsible for sizing/understanding the underlying Airflow environment (workers, schedulers), which is worth remembering if a scenario stresses "minimal operational overhead" as the deciding constraint.
 
 ---
 
@@ -533,6 +584,8 @@ Blameless postmortems, clear incident commander roles, toil reduction as an engi
 | RDS | Cloud SQL | Similar managed relational model |
 | Aurora | AlloyDB | Both pitched as faster, more scalable open-source-engine variants |
 | DynamoDB | Firestore (docs) / Bigtable (wide-column) | DynamoDB spans both use cases GCP splits into two services |
+| ElastiCache (Redis/Memcached) | Memorystore (Valkey/Redis/Memcached) | Prefer Valkey for new builds; Memorystore Memcached is being phased out |
+| DocumentDB | Firestore (Native mode) | Both document-model, though APIs/SDKs differ |
 | Redshift | BigQuery | BigQuery more serverless by default |
 | Kinesis | Pub/Sub + Dataflow | Data Streams ~ Pub/Sub, Data Analytics ~ Dataflow |
 | KMS | Cloud KMS | Conceptually near-identical |
@@ -594,6 +647,14 @@ Reasoning: this is a prompt-injection/model-safety concern, not a data-access co
 - Don't confuse **PSC** (privately consuming/exposing one specific service, point-to-point) with **NCC** (broad network-to-network reachability across many spokes). A scenario about "let a partner call our one API privately" wants PSC; a scenario about "unify connectivity across dozens of VPCs and on-prem sites" wants NCC.
 - **IAM Deny policy vs. Org Policy**, disambiguated further: Deny policy targets specific *principals and permissions* with exceptions per-principal; Org Policy targets a *resource capability* for everyone including Owners, with no per-principal exception mechanism. "Deny this to everyone except these two admins" → Deny policy. "Make this impossible for anyone, ever, on this resource" → Org Policy.
 - Privileged Access Manager is the modern answer to "avoid standing/permanent elevated access" — a permanently-provisioned break-glass service account is now the wrong-answer pattern where PAM's time-bound grants fit.
+- Firestore mode selection (Native vs. Datastore) is a one-way door once the database has data — an exam scenario emphasizing this irreversibility wants you to pick correctly the first time, not "switch later if needed."
+- Memorystore is a caching layer, full stop — if any answer choice proposes Memorystore as the sole/durable data store with no separate system of record behind it, that answer is wrong regardless of how the rest of it reads.
+- Memorystore for Memcached is now a legacy/deprecated-path answer for anything new — Memorystore for Valkey is the current default recommendation even for simple caching.
+- Don't default to Bigtable just because a scenario says "NoSQL" — if the workload is application-facing with a need for real-time sync/offline support (mobile, web), Firestore is the fit; Bigtable is for extreme-throughput, single-row-key, time-series/analytical NoSQL, not general app data.
+- Cloud Run is now the default "start here" recommendation for new stateless containerized workloads in current guidance — don't over-reach for GKE just because a workload is containerized; GKE earns its complexity only when a specific Kubernetes primitive (DaemonSets, CRDs/operators, service mesh, custom node config) is actually required.
+- GKE Autopilot explicitly cannot run DaemonSets or give node-level access — if a scenario requires either, Autopilot is a trap answer and Standard is correct even though Autopilot is usually the "least ops overhead" default.
+- Classic Dataproc clusters bill per VM-hour even while idle between jobs — a cost-sensitive, intermittent-Spark-workload scenario wants Dataproc Serverless (or Dataflow if a rewrite is acceptable), not classic Dataproc.
+- Don't reach for Cloud Composer for a simple linear job sequence — that's over-engineering; Cloud Workflows + Cloud Scheduler is the leaner answer when the pipeline doesn't need full Airflow DAG complexity.
 
 ---
 
@@ -605,5 +666,3 @@ Reasoning: this is a prompt-injection/model-safety concern, not a data-access co
 - Only 2 of the 4 case studies appear in your sitting — don't panic if one of the four feels unfamiliar going in, but ideally know all four since you won't know in advance which pair you'll get.
 - If a question doesn't name a case study, don't force one — some questions are fully standalone fundamentals.
 - Budget ~1.5 minutes per standalone question; save extra time for case-study questions since you'll be cross-referencing the split-screen scenario text.
-
----
