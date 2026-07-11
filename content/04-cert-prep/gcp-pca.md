@@ -1,90 +1,169 @@
-# GCP Professional Cloud Architect — Exam Cheatsheet (Deep Edition)
+# GCP Professional Cloud Architect — Exam Cheatsheet (v6.1 Edition)
 
-Comprehensive reference for the exam and for real design decisions. Organized by the five official exam domains, with case study deep dives, service internals, comparison tables, scenario walkthroughs, and an AWS-to-GCP mapping since your daily work is AWS-heavy.
+Google overhauled the PCA exam on **October 30, 2025** (guide version 6.1). This is a full rewrite of the previous cheatsheet to match the current guide: new domain weights, a required Well-Architected Framework lens, heavy new AI/Gemini content, and — critically — **all four case studies changed except EHR Healthcare**. If you studied Mountkirk Games, TerramEarth, or Helicopter Racing League, that material is now off the current standard exam.
 
 ---
 
-## 1. Exam Domains and How Points Are Actually Distributed
+## 0. What Changed vs. the Old Exam (so you don't waste study time)
 
-| Domain | Approx weight | What it actually tests |
+| Area | Old exam | v6.1 exam (current) |
 |---|---|---|
-| Designing and planning a cloud solution architecture | ~24% | Requirements mapping, TCO/cost-performance tradeoffs, migration planning, business continuity |
-| Managing and provisioning solution infrastructure | ~15% | Compute, storage, network provisioning choices, IaC |
-| Designing for security and compliance | ~18% | IAM, org policy, data protection, compliance regimes |
-| Analyzing and optimizing technical/business processes | ~18% | CI/CD, monitoring strategy, cost management, dev velocity |
-| Ensuring solution and operations reliability | ~25% | SRE practices, DR, incident response, SLIs/SLOs/SLAs, capacity planning |
-
-Exam mechanics: 2 hours, ~50 questions, multiple choice/multiple select, delivered via Kryterion or onsite testing center. No labs, pure scenario reasoning. A meaningful fraction of questions reference the named case studies without repeating the requirements text, so you're expected to recall them from memory.
-
-**How to read a scenario question fast:** identify (1) the business requirement, usually cost/time/compliance driven, (2) the technical requirement, usually a constraint like "must support X QPS" or "must integrate with on-prem AD", then eliminate any answer that violates a stated constraint before comparing the survivors on cost/complexity. Most wrong answers fail step one, they're technically valid architectures that just ignore a stated business constraint (e.g., proposing a rebuild when the case study explicitly says "minimize re-engineering cost").
-
----
-
-## 2. The Four Case Studies, In Depth
-
-### Mountkirk Games
-**Business:** Small games studio, wants to build a new multiplayer game expected to scale globally and fast, previous titles had trouble scaling database and web servers during peak.
-**Technical requirements:** Dynamic scaling to match load, near-real-time analytics on 10M+ events/day, minimize latency to players globally, support A/B testing of game features, all in a way that avoids a repeat of past scaling failures.
-**Architecture implications:**
-- Compute: GKE or Compute Engine MIGs behind a global external HTTP(S) LB for the game backend API, regional if the game protocol is not HTTP-friendly (use TCP/SSL proxy LB for custom UDP/TCP game protocols)
-- Analytics: Pub/Sub ingesting game telemetry, Dataflow for real-time aggregation, BigQuery for querying, this is the textbook streaming analytics pipeline
-- Database: Depends on consistency needs, Spanner if truly global strong consistency for player state is required, Bigtable if it's high-throughput event/leaderboard data
-- Avoid vendor lock-in on compute → containers (GKE) over proprietary PaaS
-
-### TerramEarth
-**Business:** Manufacturer of heavy equipment (tractors, harvesters), 2 million+ vehicles in the field, dealer network, moving from a legacy data center model, wants predictive maintenance and better dealer data sharing.
-**Technical requirements:** Vehicles generate ~200MB/day generating in bursts, connectivity to vehicles is unreliable/intermittent (rural areas), need both batch (nightly upload) and streaming ingestion paths, ML for predictive maintenance, restrict dealer access to only their own data.
-**Architecture implications:**
-- Ingestion: Pub/Sub for streaming when connected, Transfer Appliance/Storage Transfer Service or batch upload jobs for when vehicles reconnect after being offline, this dual-path is the signature of this case study
-- Storage: Bigtable for high-volume time-series sensor data, BigQuery for aggregated analytics
-- Dealer isolation: separate service accounts/IAM per dealer, or partitioned BigQuery datasets with row-level/column-level security, sometimes tested as "how do you let each dealer see only their fleet" → IAM conditions or authorized views
-- ML: Vertex AI for predictive maintenance models trained on sensor history
-
-### EHR Healthcare
-**Business:** Healthcare SaaS platform for insurance/patient management, currently on-prem and colocated, needs to modernize while staying HIPAA compliant, wants hybrid connectivity since some systems can't move yet.
-**Technical requirements:** 99.9%+ uptime for patient-facing apps, HIPAA compliance (BAA, encryption, audit logging), hybrid connectivity to remaining on-prem systems, minimize disruption during migration, legacy app has tightly coupled monolith components.
-**Architecture implications:**
-- Hybrid networking: Dedicated or Partner Interconnect for production traffic volume, Cloud VPN as backup path or for lower-volume dev/test connectivity
-- Compliance: CMEK via Cloud KMS, VPC Service Controls around the perimeter holding PHI, Data Access audit logs explicitly enabled, signed BAA, only HIPAA-eligible services in scope
-- Migration: phased/hybrid approach, not a big-bang rebuild, since the case explicitly wants to minimize risk to a live patient-facing system, this is the case study where "hybrid, incremental" beats "full rebuild" answers
-- HA: regional Cloud SQL or Spanner depending on scale, Managed Instance Groups across zones minimum, consider multi-region for the patient portal tier
-
-### Helicopter Racing League (HRL)
-**Business:** Live-streams helicopter races globally, cameras on aircraft, wants to grow viewership, currently struggles with the media processing pipeline and global stream delivery.
-**Technical requirements:** Ingest high-bitrate video from remote race locations with unreliable connectivity, transcode at scale, deliver low-latency video globally, handle extremely spiky traffic (race day vs. non-race day), analyze viewer engagement in near-real time.
-**Architecture implications:**
-- Ingest: often from remote/rural race sites, so bandwidth-constrained uplinks matter, consider Transfer Appliance for non-live archival footage vs. live streaming protocols for the race itself
-- Processing: Compute Engine or GKE running transcoding workloads, autoscaled hard for race-day spikes, this is the classic "instance group scales from near-zero to large fast" scenario, Spot/Preemptible fits since transcoding jobs are often restartable/fault-tolerant batch work
-- Delivery: Cloud CDN + global external HTTP(S) LB for viewers, Cloud DNS geolocation routing to send viewers to nearest edge/backend
-- Analytics: Pub/Sub + Dataflow + BigQuery again for viewer engagement telemetry, same pipeline shape as Mountkirk, different domain
-
-**Cross-cutting pattern:** three of the four case studies (Mountkirk, TerramEarth, HRL) resolve to the same ingestion pipeline shape: **Pub/Sub → Dataflow → BigQuery/Bigtable**. If you see "high volume events, need near-real-time analytics" in any scenario, this pipeline is very likely part of the correct answer even if the case study isn't named.
+| Case studies | Mountkirk Games, TerramEarth, EHR Healthcare, Helicopter Racing League | **Altostrat Media, Cymbal Retail, EHR Healthcare (retained), KnightMotives Automotive** |
+| Domains | 5 domains | **6 domains**, reweighted (see below) |
+| Well-Architected Framework | Implicit best practice | **Explicit, required** — its 6 pillars are named directly in the guide and woven through every section |
+| AI/ML content | One data/analytics subsection | **Two entire new sections** (2.4, 2.5) on Gemini Enterprise Agent Platform, AI Hypercomputer, Model Garden, plus "Securing AI" under the security domain |
+| Security | Standard IAM/VPC-SC/KMS | Adds **Model Armor, Sensitive Data Protection, securing the software supply chain** |
+| IaC | Mentioned generically | **Terraform explicitly named** as required knowledge (alongside Deployment Manager) |
+| Certification structure | One exam | **Two paths**: standard exam (first-time or lapsed certs) and a shorter **renewal exam** (existing cert holders) |
+| Existing certifications | — | Stay valid until normal expiration; you don't need to retake anything early |
 
 ---
 
-## 3. Compute, In Depth
+## 1. Exam Mechanics
+
+**Standard exam** (first-time certification or renewing >60 days from expiry):
+- 2 hours, ~50–60 multiple choice/multiple select questions
+- Delivered via Kryterion/Webassessor, onsite or remote proctored
+- No labs — pure scenario reasoning
+- **2 case studies appear per exam sitting**, drawn from the pool of 4. Case-study questions make up **20–30%** of the exam. You can view case studies on a split screen during the test.
+- Retake policy: 14 days after a first fail, 60 days after a second, 1 year after a third
+- Recommended experience: 3+ years industry experience, 1+ year designing/managing GCP solutions specifically
+
+**Renewal exam** (existing cert holders, within 60 days of expiration):
+- ~1 hour, ~25 questions, $100 USD, notably cheaper/shorter than the standard exam
+- **1 case study** drawn from a smaller pool of 2 (currently Altostrat Media and Cymbal Retail), both explicitly gen-AI-solution-oriented
+- **90–100% of questions are case-study-based** — this exam is almost entirely scenario application, not standalone recall
+- Sensible strategy if you're an active daily GCP user; if you haven't touched GCP much since your last cert, treat it like a fresh study effort since it leans on current services (Vertex AI/Agent Builder, Cloud Run functions) more than legacy fundamentals
+
+**How to read a scenario question fast:** identify (1) the business requirement — usually cost/time/compliance driven, (2) the technical requirement — usually a constraint like "must support X QPS" or "must integrate with on-prem AD" — then eliminate any answer that violates a stated constraint before comparing survivors on cost/complexity. Most wrong answers are technically valid architectures that ignore a stated business constraint (e.g., proposing a rebuild when the case study explicitly wants to "minimize re-engineering cost").
+
+---
+
+## 2. Domain Weights (v6.1)
+
+| Domain | Weight | What it actually tests |
+|---|---|---|
+| 1. Designing and planning a cloud solution architecture | **~25%** | Requirements mapping, WAF application, migration planning, business continuity, envisioning future improvements |
+| 2. Managing and provisioning solution infrastructure | **~17.5%** | Network/storage/compute provisioning, container orchestration, **Gemini Enterprise Agent Platform for ML workflows**, prebuilt AI APIs |
+| 3. Designing for security and compliance | **~17.5%** | IAM, org policy, data protection, **securing AI**, compliance regimes |
+| 4. Analyzing and optimizing technical/business processes | **~15%** | SDLC, CI/CD, DR, stakeholder/change management, cost optimization |
+| 5. Managing implementation | **~12.5%** | Advising dev/ops teams, API management (Apigee), **Gemini Cloud Assist**, programmatic GCP access (SDKs, Terraform) |
+| 6. Ensuring solution and operations excellence | **~12.5%** | Well-Architected Framework operational excellence pillar, observability, reliability practices, chaos/load/penetration testing |
+
+Note the biggest structural change: the old "ensuring reliability" domain (~25%) has been split and folded partly into domain 1 (business continuity), and a large chunk of what used to be reliability-only content is now framed through the Well-Architected Framework lens across every domain, rather than concentrated in one place.
+
+---
+
+## 3. The Well-Architected Framework — now mandatory knowledge
+
+The guide states familiarity with the framework is "paramount" and its six pillars are "implicitly and explicitly woven throughout the exam objectives." Know these cold:
+
+| Pillar | Core idea |
+|---|---|
+| Operational excellence | Efficient deployment, operation, and monitoring; has its own explicit exam subsection (6.1) |
+| Security | Defense in depth, least privilege, securing AI workloads specifically |
+| Reliability | HA, DR, failover design, capacity planning |
+| Performance optimization | Right resource for the workload, latency/throughput tuning |
+| Cost optimization | CapEx/OpEx tradeoffs, rightsizing, discount commitments |
+| Sustainability | Newly emphasized pillar — carbon-aware region/workload choices, efficient resource use |
+
+Expect the exam to frame tradeoff questions explicitly in these terms now — e.g., "which pillar does this decision prioritize, and what does it cost the others" is a legitimate v6.1 question shape, not just "which service is fastest."
+
+---
+
+## 4. The Four Case Studies (Current Set)
+
+### Altostrat Media *(new)*
+**Business:** Media company with a large library of podcasts, interviews, news broadcasts, and documentaries. Wants to modernize content management and user engagement with generative AI.
+**Existing environment:** GKE for the content platform (scalability/HA), Cloud Storage for the media library (audio/video/docs), BigQuery as the analytics warehouse (user behavior, consumption patterns, audience demographics), Cloud Run functions for event-driven tasks (transcoding, metadata extraction, personalized recommendations). Some legacy on-prem ingestion/archival systems still in use during migration.
+**Business goals:** personalized recommendations, natural-language interactions, self-service support, dynamic pricing, targeted marketing — plus positioning Altostrat as an AI-forward media brand while keeping AI outputs appropriate and explainable.
+**Architecture implications:**
+- Event-driven media pipeline: Cloud Storage upload triggers → Cloud Run functions → Video Intelligence API / Vision AI for metadata extraction and content moderation
+- Vertex AI / Gemini models for recommendations and natural-language interfaces; avoid proposing a custom-trained CV/NLP stack when a managed API already fits — that's the classic wrong-answer trap here
+- Hybrid connectivity (Partner/Dedicated Interconnect or HA VPN) while legacy on-prem ingestion is phased out
+- BigQuery stays the analytics backbone; don't replace it wholesale, extend it
+
+### Cymbal Retail *(new)*
+**Business:** Fast-growing online retailer across several retail sub-verticals, struggling to manage an extensive, constantly-changing product catalog.
+**Existing environment:** Mix of on-prem and cloud systems, an IVR system routing calls to a call center where agents manually enter orders customers couldn't complete online, and open-source monitoring (Grafana, Nagios, Elastic).
+**Business goals — three pillars:**
+1. **Catalog and content enrichment** — use gen AI to generate product attributes, descriptions, and images from raw supplier data, cutting manual effort/errors and keeping the catalog consistent across channels.
+2. **Conversational commerce with product discovery** — AI virtual agents on web/mobile using Google's Discovery AI / Vertex AI Search & Conversation to handle natural-language shopping queries and reduce reliance on the manual call center.
+3. **Technical stack modernization** — move to cloud infrastructure with secure data handling, third-party integration, and proactive monitoring/security to cut manual-process costs.
+**Architecture implications:**
+- Retail-specific managed services (Vertex AI Search for Retail / Recommendations AI) are usually the "least effort, most fit" answer over training a custom recommender on GKE
+- Datastream + Dataflow to consolidate siloed on-prem/cloud data sources into BigQuery for a unified customer view, rather than manual nightly file dumps
+- Apigee or similar API layer to expose catalog/order data to the new conversational agent without exposing entire backend systems
+- Cost-consciousness is an explicit business requirement here — an answer that's technically impressive but always-on/over-provisioned is the wrong-answer pattern for this case
+
+### EHR Healthcare *(retained from the previous exam cycle)*
+**Business:** Healthcare SaaS platform for insurance/patient management, migrating from colocation to Google Cloud, must stay HIPAA compliant, needs hybrid connectivity for systems that can't move yet.
+**Technical requirements:** 99.9%+ uptime for patient-facing apps, HIPAA compliance (BAA, encryption, audit logging), hybrid connectivity to remaining on-prem/colo systems, minimize migration disruption, faster deployment of containerized EHR software.
+**Architecture implications:**
+- Dedicated/Partner Interconnect for production traffic, Cloud VPN as backup or for lower-volume dev/test
+- CMEK via Cloud KMS, VPC Service Controls around PHI, Data Access audit logs explicitly enabled, signed BAA, only HIPAA-eligible services in scope
+- Phased/incremental migration, not a big-bang rebuild — this is still the case study where "hybrid, incremental" beats "full rebuild" answers
+- Regional Cloud SQL or Spanner depending on scale, MIGs across zones minimum for the customer portal tier
+- This is also the case study ExamTopics and others note can often be answered on pure GCP fundamentals (e.g., a Pub/Sub batching-vs-latency tradeoff question) without needing the business narrative at all — don't over-invest in memorizing narrative details at the expense of core service tradeoffs
+
+### KnightMotives Automotive *(new, replaces TerramEarth/Mountkirk Games/HRL)*
+**Business:** Automotive company providing connected-car services — telemetry from vehicles (location, sensor readings) for predictive maintenance and driver services, with selective data sharing to partners (insurers, dealerships).
+**Existing environment:** Vehicles batch-upload telemetry to an on-premises data center, which limits scale and real-time analysis. Moving to Google Cloud to handle global scale/velocity.
+**Constraints:** data locality/residency (keep regional data in-region), very high ingestion rates, cost control for storage/processing, secure partner data exposure via APIs.
+**Architecture implications:**
+- Ingestion: Pub/Sub for streaming telemetry at scale, buffering/retry patterns for vehicles with intermittent connectivity — same dual-path signature (streaming + batch) that TerramEarth used to test, now under a different case name
+- Storage: Bigtable keyed by vehicle ID + timestamp for high-throughput time-series lookups, periodic export/stream into BigQuery for analytics — this exact pairing is a near-guaranteed correct-answer pattern whenever the case is invoked
+- Data residency: regional processing/storage segregation rather than one global region, to respect data locality regulation — a single-region design is the classic wrong answer here
+- Partner data sharing: Apigee as an API gateway layer for controlled, secured exposure to insurers/dealerships — SFTP file drops or broad database access are the wrong-answer traps
+- ML: Vertex AI / Gemini Enterprise Agent Platform pipelines for predictive maintenance models trained on sensor history
+
+**Cross-cutting pattern:** despite the new names, the underlying architecture shapes barely moved. High-volume IoT/telemetry → Pub/Sub → Bigtable/BigQuery is still the signature "real-time analytics at scale" answer (now under KnightMotives instead of TerramEarth), and gen-AI-forward customer experience → Vertex AI/Agent Builder + existing GKE/BigQuery stack is the signature "modernize with AI" answer (now under Altostrat Media and Cymbal Retail). If you understand the *service tradeoffs*, the company names are mostly flavor text.
+
+---
+
+## 5. New AI/Gemini Content (Sections 2.4, 2.5, and Security 3.1)
+
+This is the single biggest content addition in v6.1. Know these at a conceptual level even if you've never touched them hands-on:
+
+| Concept | What it is / when it's the answer |
+|---|---|
+| **Gemini Enterprise Agent Platform** | The umbrella platform for building/orchestrating agentic and ML workflows; "Agent Platform Pipelines" automate/orchestrate the ML lifecycle end to end |
+| **AI Hypercomputer** | Google's integrated compute system (GPUs/TPUs + optimized software stack) for large-scale AI model training/serving; the answer when a scenario needs to train or serve large models at scale, not just call an API |
+| **Model Garden** | Catalog of foundation models (Google's and third-party) you can deploy/fine-tune rather than building from scratch |
+| **Agent Builder** | Tooling for building custom conversational/task agents on top of Gemini models — this is what Cymbal Retail's conversational commerce agent and Altostrat's natural-language interactions map to |
+| **Gemini Cloud Assist** | AI-assisted help for architecture design, troubleshooting, and operations woven throughout domains 1, 2, and 5 — expect it as an answer option for "how do we get AI-assisted recommendations on our own GCP setup," distinct from Gemini models used *in* a customer-facing product |
+| **Google AI APIs (prebuilt)** | Search, Conversation, Vision, Image, Video, Audio — the "don't build it yourself" answer whenever a scenario just needs standard content/media analysis (this is the direct successor to the old Video AI/Vision AI answer pattern) |
+| **Model Armor** | Security layer for AI models — screening prompts/responses for policy violations, prompt injection, sensitive content; the answer for "how do we secure what goes in/out of our LLM" |
+| **Sensitive Data Protection** (formerly Cloud DLP) | Detects/redacts/tokenizes sensitive data (PII, PHI, credit card numbers) — relevant to EHR Healthcare's HIPAA data and Cymbal Retail's customer PII specifically |
+| **Secure model deployment** | Least-privilege service accounts, VPC-SC perimeters, and supply-chain integrity (Binary Authorization-style signing) applied specifically to model artifacts and endpoints, not just application containers |
+
+**Exam-writer's own caution (worth internalizing):** more AI content in the guide does *not* mean "pick the AI-flavored answer whenever one is offered." Many questions still test a fundamental non-AI tradeoff (e.g., a Pub/Sub batching-latency question under the EHR Healthcare case) where the correct answer has nothing to do with AI at all. Don't pattern-match to AI options just because they're novel.
+
+---
+
+## 6. Compute, In Depth
 
 ### Machine family selection
 | Family | Best for |
 |---|---|
 | E2 | Cost-optimized general purpose, dev/test, non-critical workloads |
 | N2/N2D | Balanced general purpose production workloads, N2D is AMD-based, usually cheaper |
-| C2/C2D | Compute-optimized, high-performance computing, gaming servers, ad serving |
+| C2/C2D | Compute-optimized, HPC, gaming servers, ad serving |
 | M2/M3 | Memory-optimized, in-memory databases (SAP HANA), large caches |
-| A2/A3 | GPU-accelerated (A100/H100), ML training |
+| A2/A3 | GPU-accelerated (A100/H100), ML training — now explicitly tied to AI Hypercomputer scenarios |
 | T2D/T2A | Scale-out ARM/x86 workloads, cost-sensitive horizontally-scaled apps |
 
-Custom machine types let you pick exact vCPU/memory ratios when predefined types waste resources, this comes up when a scenario mentions a memory-heavy but not compute-heavy app that doesn't fit standard ratios.
+Custom machine types let you pick exact vCPU/memory ratios when predefined types waste resources — comes up when a scenario mentions a memory-heavy but not compute-heavy app that doesn't fit standard ratios.
 
 ### Sole-tenant nodes
-Dedicated physical server for your VMs only, use case: licensing that requires dedicated hardware (some BYOL scenarios), strict compliance requiring physical isolation. This is a niche but real exam distractor/answer.
+Dedicated physical server for your VMs only. Use case: licensing requiring dedicated hardware (BYOL), strict compliance requiring physical isolation. Niche but real exam distractor/answer.
 
 ### GKE deep dive
-- **Autopilot vs Standard**: Autopilot is fully managed (Google manages nodes, security hardening, patching), Standard gives you node-level control. Exam trend favors Autopilot as the "least operational overhead" answer unless the scenario needs privileged workloads, custom node config, or DaemonSets that Autopilot restricts.
-- **Node pools**: group nodes by machine type/purpose (e.g., a GPU node pool for ML workloads, separate from a general pool), lets you target specific workloads to specific hardware via node selectors/taints
-- **Workload Identity**: binds a Kubernetes service account to a Google service account without static key files, this is the direct GCP equivalent of what you already do with IRSA and Pod Identity on EKS, same underlying goal (short-lived, scoped credentials for pods)
-- **Binary Authorization**: enforce that only signed/verified container images deploy to the cluster, maps conceptually to your Cosign keyless signing work, likely to appear in a "how do we ensure only approved images run in production" question
-- **Multi-cluster**: Anthos/GKE Enterprise for fleet management across clusters/clouds, comes up in "avoid vendor lock-in, run consistently across GCP and on-prem" scenarios
+- **Autopilot vs Standard**: Autopilot is fully managed (Google manages nodes, security hardening, patching); Standard gives node-level control. Exam trend favors Autopilot as the "least operational overhead" answer unless the scenario needs privileged workloads, custom node config, or DaemonSets that Autopilot restricts.
+- **Node pools**: group nodes by machine type/purpose (e.g., a GPU node pool for ML workloads), lets you target workloads to hardware via node selectors/taints
+- **Workload Identity**: binds a Kubernetes service account to a Google service account without static key files
+- **Binary Authorization**: enforce only signed/verified images deploy — now explicitly connected to "securing the software supply chain" in domain 3
+- **Multi-cluster**: Anthos/GKE Enterprise for fleet management across clusters/clouds — "avoid vendor lock-in, run consistently across GCP and on-prem" scenarios
 
 ### Autoscaling matrix
 | Layer | Mechanism | Scales based on |
@@ -93,13 +172,25 @@ Dedicated physical server for your VMs only, use case: licensing that requires d
 | GKE pods | Horizontal Pod Autoscaler (HPA) | CPU/memory/custom metrics per pod |
 | GKE pod sizing | Vertical Pod Autoscaler (VPA) | Historical resource usage, recommends/adjusts requests |
 | GKE nodes | Cluster Autoscaler | Pending unschedulable pods, scales existing node pools |
-| GKE nodes, cross-pool | Node Auto-Provisioning (NAP) | Creates new node pools automatically to match workload shape, not just scaling existing pools |
+| GKE nodes, cross-pool | Node Auto-Provisioning (NAP) | Creates new node pools automatically to match workload shape |
 
-The Cluster Autoscaler vs NAP distinction you already worked through in your labs is a real exam distinction: Cluster Autoscaler only scales nodes within pools you defined, NAP will create entirely new node pools if none of the existing ones fit the pending pod's requirements.
+Cluster Autoscaler only scales nodes within pools you defined; NAP creates entirely new node pools if none fit the pending pod's requirements.
+
+### GKE fleet and service mesh, deep dive
+- **Fleets**: a logical grouping of GKE (and non-GKE, via Attached Clusters) clusters registered under one umbrella for unified policy, monitoring, and feature management — the organizing concept behind Anthos/GKE Enterprise multi-cluster management, not a separate product of its own.
+- **Config Sync**: GitOps-style continuous reconciliation of Kubernetes config from a Git repo across every cluster in a fleet — the answer for "keep N clusters consistently configured without manually applying manifests to each one."
+- **Cloud Service Mesh** (managed Istio-based mesh): mutual TLS between services, traffic splitting/canarying, and observability across a fleet — comes up when a scenario wants zero-trust service-to-service communication or fine-grained traffic shifting inside GKE rather than at the external LB layer.
+- **Multi-cluster Gateway/Ingress**: a single external LB config that routes across clusters/regions — the fleet-level equivalent of a global external Application LB, but load-balancing across GKE clusters instead of instance groups.
+
+### Mapping compute to platform products (explicit exam subsection 1.3)
+The guide now explicitly calls out choosing between **GKE, Cloud Run, and Cloud Run functions** as its own tested skill, not an afterthought:
+- Cloud Run functions: event-driven, short-lived, scale-to-zero (Altostrat's transcoding/metadata triggers are the textbook example)
+- Cloud Run (services): stateless containers, HTTP-driven, simpler than GKE when you don't need full orchestration control
+- GKE: when you need fine-grained orchestration, custom networking, stateful workloads, or multi-cluster/hybrid consistency
 
 ---
 
-## 4. Storage, In Depth
+## 7. Storage, In Depth
 
 ### Persistent Disk / Hyperdisk types
 | Type | Use case |
@@ -110,90 +201,156 @@ The Cluster Autoscaler vs NAP distinction you already worked through in your lab
 | pd-extreme / Hyperdisk Extreme | Highest performance, SAP HANA, large DBs, IOPS provisioned independently of size |
 | Hyperdisk Balanced/Throughput | Next-gen PD, decouple capacity/IOPS/throughput provisioning |
 
-Regional PD replicates synchronously across two zones in a region for HA at the disk layer, but it is still not a backup, snapshots remain necessary for point-in-time recovery and cross-region durability.
+Regional PD replicates synchronously across two zones for HA at the disk layer, but it is not a backup — snapshots remain necessary for point-in-time recovery and cross-region durability.
 
-### Cloud SQL vs AlloyDB vs Spanner vs Bigtable (the classic 4-way exam trap)
+### Cloud SQL vs AlloyDB vs Spanner vs Bigtable
 | | Cloud SQL | AlloyDB | Spanner | Bigtable |
 |---|---|---|---|---|
 | Model | Relational (MySQL/Postgres/SQL Server) | PostgreSQL-compatible | Relational, horizontally scalable | Wide-column NoSQL |
-| Scale | Vertical, read replicas | Vertical + read pool, better for analytics-heavy Postgres | Horizontal, petabyte scale | Horizontal, petabyte scale, very high throughput |
-| Consistency | Strong (single region) | Strong | Strong, globally (with multi-region config) | Eventually consistent by default, strong within a row |
-| When it's the answer | Standard transactional app, single-region OK, cost matters | Postgres workload needing analytics performance without moving to a separate warehouse | Need global strong consistency + relational semantics + massive scale, cost is not the primary constraint | Extremely high write throughput, time-series/IoT, don't need SQL joins |
-
-**AlloyDB** is a relatively newer addition worth knowing even if it's less case-study-anchored: it's Google's PostgreSQL-compatible service pitched as faster than stock Postgres for transactional + analytical mixed workloads, tends to show up as the answer for "we're on Postgres, need better performance, don't want to change our app."
+| Scale | Vertical, read replicas | Vertical + read pool, analytics-heavy Postgres | Horizontal, petabyte scale | Horizontal, petabyte scale, very high throughput |
+| Consistency | Strong (single region) | Strong | Strong, globally (multi-region config) | Eventually consistent by default, strong within a row |
+| When it's the answer | Standard transactional app, single-region OK, cost matters | Postgres workload needing analytics performance without a separate warehouse | Need global strong consistency + relational semantics + massive scale | Extremely high write throughput, time-series/IoT — this is the KnightMotives telemetry pattern |
 
 ### BigQuery internals worth knowing cold
-- Storage and compute are billed and scaled separately, this is why "just add more compute" is never the answer to a BigQuery cost problem
-- **Partitioning**: by ingestion time, by a DATE/TIMESTAMP column, or by an INTEGER range, reduces bytes scanned by pruning partitions
-- **Clustering**: sorts data within partitions by up to 4 columns, further reduces bytes scanned for filtered/aggregated queries, stacks with partitioning
-- **Materialized views**: precomputed, auto-refreshed, use when the same aggregation query runs repeatedly
-- **BI Engine**: in-memory analysis layer for fast dashboard queries, use when the pain point is dashboard latency not raw query cost
-- **Pricing models**: on-demand (pay per bytes scanned) vs. capacity-based editions (Standard/Enterprise/Enterprise Plus, pay for slots), capacity-based is the answer once query volume is high and predictable enough that flat-rate beats variable on-demand cost
-- **Authorized views / row-level security / column-level security**: the mechanism for "let this team see only their slice of the warehouse" questions, this is the TerramEarth dealer-isolation pattern applied to BigQuery specifically
+- Storage and compute are billed/scaled separately — "just add more compute" is never the answer to a BigQuery cost problem
+- **Partitioning**: by ingestion time, DATE/TIMESTAMP column, or INTEGER range
+- **Clustering**: sorts data within partitions by up to 4 columns, stacks with partitioning
+- **Materialized views**: precomputed, auto-refreshed, for repeated identical aggregation queries
+- **BI Engine**: in-memory layer for fast dashboard queries, when the pain point is dashboard latency not query cost
+- **Pricing models**: on-demand vs. capacity-based editions (Standard/Enterprise/Enterprise Plus) — capacity-based wins once query volume is high and predictable
+- **Authorized views / row-level / column-level security**: "let this team see only their slice of the warehouse" — the Cymbal Retail unified-customer-view pattern and the old TerramEarth/KnightMotives dealer-isolation pattern both resolve here
+- **Fine-Grained Access Control for BigQuery** (now GA): a more centrally-managed evolution of the same idea — policy tags and access bindings enforced down to the column level without hand-building a separate authorized view per team. Cite this by name if a scenario stresses "centrally governed, column-level least privilege" rather than "per-team custom views."
 
 ### Cloud Storage deep notes
-- Object versioning vs. lifecycle rules are separate features, versioning keeps old object generations, lifecycle rules act on age/class/version state
-- Signed URLs: time-limited access to private objects without making them public, common answer for "let an external partner download one file without a GCP account"
-- Requester Pays: shifts egress/request cost to whoever accesses the bucket, useful for public datasets you don't want to fund indefinitely
-- Turbo Replication (dual-region): near-real-time replication SLA between two specific regions when standard multi-region replication lag isn't good enough
+- Object versioning vs. lifecycle rules are separate features
+- Signed URLs: time-limited private-object access without a GCP account — the "let a supplier upload catalog images" pattern for Cymbal Retail
+- Requester Pays: shifts egress/request cost to the accessor
+- Turbo Replication (dual-region): near-real-time replication SLA when standard multi-region lag isn't good enough
 
 ---
 
-## 5. Networking, In Depth
+## 8. Networking, In Depth
 
 ### VPC internals
-- VPC networks and their routes are global, subnets are regional, firewall rules are global but can target by network tag/service account and are enforced at the hypervisor level (distributed stateful firewall, not a single choke point), this maps to the same mental model as security groups but applied globally per VPC rather than being explicitly tied to an instance-level ENI construct
-- Firewall rule evaluation: implied allow egress + implied deny ingress exist by default, explicit rules are evaluated by priority (lower number = higher priority), deny rules can override allow rules of lower priority
-- Alias IP ranges: let a single VM/pod have multiple internal IPs from a defined range, this is what GKE uses under the hood for pod IP allocation in VPC-native clusters
+- VPC networks/routes are global, subnets are regional, firewall rules are global but enforced at the hypervisor level (distributed stateful firewall)
+- Firewall evaluation: implied allow egress + implied deny ingress by default; explicit rules evaluated by priority (lower number = higher priority)
+- Alias IP ranges: multiple internal IPs per VM/pod from a defined range — what GKE uses for pod IP allocation in VPC-native clusters
+- **Hierarchical firewall policies** (called out explicitly in v6.1): apply firewall policy at the org/folder level so it cascades to projects below, complementing per-VPC rules for multi-project segmentation. This is the answer whenever a scenario wants one security baseline enforced across many projects that individual project admins can't override.
 
-### Shared VPC roles (frequently tested specifics)
-- **Shared VPC Admin**: set at the org/folder level, can attach/detach service projects to a host project
-- **Network Admin**: full control over network resources in the host project (subnets, routes, firewall) but cannot assign VMs to the network
-- **Network User**: granted on specific subnets to service project owners, lets them deploy resources into that subnet without touching network config
-This three-way split is the standard "central network team keeps control, application teams self-serve within their subnet" pattern, expect a question shaped exactly like this.
+### Shared VPC roles
+- **Shared VPC Admin**: org/folder level, attach/detach service projects to a host project
+- **Network Admin**: full control over host-project network resources, cannot assign VMs to the network
+- **Network User**: granted on specific subnets, lets service-project owners deploy without touching network config
 
-### VPC Peering vs Shared VPC vs PSC, disambiguated
-| | Shared VPC | VPC Peering | Private Service Connect |
-|---|---|---|---|
-| Relationship | One host, many service projects, same org typically | Two independent VPCs, any org | Consumer VPC to a published service (Google API or another VPC's service) |
-| Transitivity | N/A, all in one network | Non-transitive | N/A, point-to-point via endpoint |
-| Best for | Centralized governance across teams in one org | Connecting a small number of independent VPCs, including across orgs | Consuming a service privately without full network peering, or exposing your own service to consumers without exposing your whole VPC |
+### Network Connectivity Center (NCC) — deep dive
+
+NCC is the modern, exam-relevant answer to "we have too many point-to-point connections and it doesn't scale" — it is GCP's closest analogue to **AWS Transit Gateway**, and it shows up whenever a scenario describes a "tangled mesh" of VPC peerings, VPNs, and Interconnects that needs centralizing.
+
+**Core model:** NCC is a global orchestration framework built around a **hub** (the central resource) and **spokes** (the network resources attached to it). A single hub can hold spokes across multiple regions.
+
+**Why NCC over plain VPC Peering:**
+- VPC Peering is **non-transitive** — if A peers with B and B peers with C, A cannot reach C. To fully mesh N networks with peering you need N(N-1)/2 connections (10 VPCs = 45 peerings), and peering has hard per-network quota limits.
+- NCC solves this by exchanging routes through the hub, giving **transitive connectivity** with **linear scaling** — adding a 5th network is one new spoke, not four new connections.
+- Trade-off to know: NCC doesn't ship an integrated firewall — security enforcement (via hierarchical firewall policies, Cloud NGFW, or third-party appliances) is still the user's responsibility, layered on top.
+
+**Spoke types (know all of these — a "which spoke type fits this resource" question is a realistic exam pattern):**
+| Spoke type | Connects |
+|---|---|
+| VPC spoke | Another VPC network (same org or different org) — exchanges subnet routes with the hub |
+| Hybrid spoke — HA VPN | On-prem/branch site over VPN tunnels |
+| Hybrid spoke — Interconnect VLAN attachment | On-prem/branch site over Dedicated/Partner Interconnect |
+| Hybrid spoke — Router appliance VM | Third-party virtual appliance for site-to-site/site-to-cloud routing |
+| Producer VPC spoke | Makes a VPC-Peering-based producer service (already peered to one spoke) reachable by all other spokes on the hub |
+| NCC Gateway spoke | Regional spoke enabling third-party **Security Service Edge (SSE)** inspection of Cross-Cloud Network traffic |
+
+**Topologies:** a hub is created with a topology that **cannot be changed later** — pick correctly up front.
+- **Mesh (full intercommunication)**: every spoke can reach every other spoke — the default choice when workloads across all VPCs need any-to-any communication.
+- **Star (center/edge groups)**: resources in the "center" group can talk to center and edge; resources in an "edge" group can talk only to center, not to other edge groups. This is the pattern for **hub-and-spoke with strict spoke isolation** — e.g., a shared-services hub reachable by many business-unit VPCs that must not talk to each other directly.
+
+**Constraints worth remembering for exam traps:**
+- A hub generally connects Google Cloud VPCs to each other, or to external networks — mixing both roles carelessly is a documented limitation, not a free-for-all.
+- NCC cannot mix hybrid and VPC spokes in a way that lets you create custom routes pointing back at the hub as a next hop from within a spoke — sometimes requires supplementary designs (e.g., PSC + internal LB) to route traffic back to on-prem/peered networks.
+- **PSC connection propagation through NCC**: when a hub has propagation enabled, Private Service Connect endpoints attached to one spoke automatically become reachable from other spokes on the same hub (unless explicitly excluded) — this is how you make a single "common services" PSC endpoint available org-wide without re-publishing it per VPC.
+- Billing: the hub itself is free; you pay for **active spoke-hours** plus the underlying resources (VPN tunnels, Interconnect attachments) and applicable data transfer.
+
+**When NCC is the answer vs. Shared VPC vs. Peering:**
+- Small number of networks (2–3), simple relationship → VPC Peering still fine.
+- Centralized governance where application teams self-serve within one org's network → Shared VPC.
+- Many networks, multiple orgs, hybrid sites, or a requirement for transitive any-to-any or hub-and-spoke connectivity → **NCC**.
+
+### Private Service Connect (PSC) — deep dive
+
+PSC lets a **consumer** VPC privately reach a **producer's** service without VPC Peering, without a VPN, and without traversing the public internet — traffic stays inside Google's network end-to-end. This is the default answer for **any "expose our service to another team/org/customer privately" scenario** that doesn't want full network peering.
+
+**Two consumption models:**
+- **PSC endpoints**: a forwarding rule with an internal IP in the consumer VPC that points at a producer's service attachment — simplest model, one endpoint per service.
+- **PSC backends**: used with Google Cloud proxy load balancers (Application or Network LB) for more granular consumer-side control — the answer when the consumer wants to layer their own LB, WAF (Cloud Armor), or routing logic in front of the private connection.
+
+**Producer side:**
+- Publishes an internal load balancer, then creates a **service attachment** pointing at that LB's forwarding rule.
+- The service attachment defines a **consumer accept list** (specific projects, networks, or "accept all") and a dedicated **NAT subnet** (purpose `PRIVATE_SERVICE_CONNECT`) that the physical host machines use to NAT consumer traffic directly — this is why PSC bandwidth is limited only by host machine capacity, not by a NAT gateway bottleneck.
+- Producers never need to manage firewall rules based on every consumer's VPC ranges — only the NAT subnet's range needs an allow rule on the producer side, regardless of how many consumers connect.
+
+**Consumer side:** creates an endpoint or backend referencing the service attachment URI; sees only a private IP, with zero visibility into the producer's VPC topology — a clean trust boundary that's the correct answer whenever a scenario needs strict producer/consumer isolation across org boundaries (e.g., a SaaS vendor exposing an API to many customer VPCs, or a partner-data-sharing requirement like KnightMotives Automotive's dealer/insurer access).
+
+**PSC for Google APIs:** an alternative to Private Google Access or public API endpoints — lets you reach Google APIs (and regional endpoints) via a private endpoint inside your VPC instead of through the internet-facing path.
+
+**PSC interfaces (producer-initiated / "managed service egress"):** the reverse direction from a normal PSC endpoint — lets a **producer** VPC initiate connections *into* a consumer's network attachment, useful when a managed service needs to reach back into customer infrastructure (rare but a real distinguishing detail vs. the standard consumer-initiated endpoint model).
+
+**Known gotchas (good exam distractors):**
+- TCP idle timeout on PSC NAT is 20 minutes by default — a service with long-lived connections may need tuning.
+- NAT subnet IP exhaustion is a common real-world failure mode — the fix is adding another `PRIVATE_SERVICE_CONNECT`-purpose subnet to the service attachment, not resizing the LB.
+- PSC connections are **not transitive between VPC spokes** on their own — that transitivity only comes from **NCC's PSC propagation** feature layered on top.
+
+### Cross-Cloud Network and NCC Gateway
+Google's architecture pattern for a unified network spanning GCP, on-prem, and other clouds, built on NCC as the connectivity backbone. **NCC Gateway spokes** integrate third-party **Security Service Edge (SSE)** providers to inspect this cross-cloud traffic — relevant when a scenario wants centralized security inspection of hybrid/multi-cloud traffic rather than per-VPC firewall rules alone.
+
+### VPC Peering vs Shared VPC vs PSC vs NCC (four-way disambiguation)
+| | Shared VPC | VPC Peering | Private Service Connect | Network Connectivity Center |
+|---|---|---|---|---|
+| Relationship | One host, many service projects, same org | Two independent VPCs, any org | Consumer VPC to a published service | Many VPCs/hybrid sites to a central hub |
+| Transitivity | N/A, one network | Non-transitive | Point-to-point (transitive only via NCC propagation) | Transitive across all attached spokes |
+| Scaling | N/A | Quadratic (N(N-1)/2 for full mesh) | Linear per service published | Linear per spoke added |
+| Best for | Centralized governance in one org | A handful of independent VPCs, cross-org | Exposing/consuming a single service privately, strict producer/consumer isolation | Many networks, hybrid sites, multi-cloud, needing hub-and-spoke or full-mesh at scale |
 
 ### Hybrid connectivity decision factors
 | Requirement | Choice |
 |---|---|
-| Need it working today, moderate bandwidth, encrypted over internet | Cloud VPN (HA VPN gives 99.99% SLA with two tunnels) |
+| Moderate bandwidth, encrypted over internet | Cloud VPN (HA VPN gives 99.99% SLA) |
 | Sustained high bandwidth, lowest latency, willing to colocate | Dedicated Interconnect |
-| High bandwidth but no colocation facility access | Partner Interconnect |
-| Connecting VPCs across different cloud providers directly | Cross-Cloud Interconnect |
-| Encrypted traffic over Interconnect (Interconnect itself isn't encrypted by default) | HA VPN over Interconnect, or MACsec where supported |
+| High bandwidth, no colocation access | Partner Interconnect |
+| Cross-cloud VPC connectivity | Cross-Cloud Interconnect |
+| Encrypted traffic over Interconnect | HA VPN over Interconnect, or MACsec |
+| Centralizing many hybrid sites/VPCs under one connectivity model | NCC hybrid spokes (VPN, Interconnect, or Router appliance) attached to a single hub |
 
-### Load balancer selection, full matrix
+### Cloud DNS routing policies
+- **Geolocation routing**: route clients to the nearest regional endpoint — the HRL/media-style global-delivery pattern.
+- **Weighted round robin**: gradual traffic shifting, canary-style rollouts between backend versions.
+- **Failover routing**: automatic failover to a backup endpoint on health-check failure.
+- **DNS peering**: share a private zone's records across VPCs without merging the zones themselves — distinct from NCC, which shares network reachability, not name resolution.
+
+### Load balancer selection
 | Type | Layer | Global/Regional | Traffic | Typical use |
 |---|---|---|---|---|
-| Global external Application LB | L7 | Global | HTTP(S) | Public web apps, anycast IP, CDN/Armor integration |
-| Regional external Application LB | L7 | Regional | HTTP(S) | Data residency requirement for LB itself |
-| Classic external Application LB | L7 | Global (legacy) | HTTP(S) | Legacy, being phased toward the newer global external ALB |
-| Global external Proxy Network LB (SSL/TCP proxy) | L4 | Global | TCP/SSL non-HTTP | Global reach for non-HTTP protocols |
-| External passthrough Network LB | L4 | Regional | TCP/UDP | Preserve client source IP, need raw protocol passthrough |
-| Internal Application LB | L7 | Regional | HTTP(S) | Internal microservices, service mesh ingress |
+| Global external Application LB | L7 | Global | HTTP(S) | Public web apps, anycast IP, CDN/Armor |
+| Regional external Application LB | L7 | Regional | HTTP(S) | Data residency for the LB itself |
+| Global external Proxy Network LB | L4 | Global | TCP/SSL non-HTTP | Global reach, non-HTTP protocols |
+| External passthrough Network LB | L4 | Regional | TCP/UDP | Preserve client source IP |
+| Internal Application LB | L7 | Regional | HTTP(S) | Internal microservices, mesh ingress |
 | Internal passthrough Network LB | L4 | Regional | TCP/UDP | Internal non-HTTP services |
+| Cross-region internal Application LB | L7 | Multi-region | HTTP(S) | Internal service reachable from multiple regions — can be a PSC service-attachment target directly |
 
-### Cloud Armor specifics
-- **Edge security policies**: applied at Google's edge before traffic hits your backend, use for geo-blocking, blocking known bad IPs at scale
-- **Backend security policies**: standard WAF rules (OWASP Top 10 preconfigured rulesets), rate limiting, bot management
-- Adaptive Protection: ML-based DDoS/anomaly detection layered on top
-
-### Cloud NAT specifics
-- Regional resource, requires a Cloud Router in the same region/network
-- Outbound only, by design, never the answer when inbound connectivity from the internet is required
-- No SLA-impacting single point of failure the way a self-managed NAT instance would be, this is the "why not just run a NAT VM yourself" answer
+### Cloud Armor / Cloud NAT
+- Edge security policies: geo-blocking, bad IPs at scale, applied before backend
+- Backend security policies: WAF rules, rate limiting, bot management
+- Cloud NAT: regional, requires a Cloud Router, outbound only — never the answer for inbound internet connectivity
+- Cloud NAT vs. PSC NAT subnets: don't conflate the two — Cloud NAT gives VMs *outbound internet* access without external IPs; a PSC NAT subnet is a completely separate mechanism used only to translate *consumer-to-producer* PSC traffic and has no relation to internet egress
 
 ---
 
-## 6. IAM & Security, In Depth
+## 9. IAM & Security, In Depth
 
-### Resource hierarchy example
+### Resource hierarchy
 ```
 Organization (example.com)
 ├── Folder: Production
@@ -205,245 +362,248 @@ Organization (example.com)
 └── Folder: Shared Services
     └── Project: shared-vpc-host
 ```
-IAM bindings set at Organization apply everywhere below. A binding at Folder: Production applies to prod-web and prod-data but not to dev/staging. This is the standard exam diagram, expect a question asking "where do you grant a role so it applies to only the two production projects" → answer is the Production folder, not the org, not each project individually.
+IAM bindings at Organization apply everywhere below. A binding at Folder: Production applies only to prod-web/prod-data.
 
 ### Org Policy constraints worth memorizing
 | Constraint | Purpose |
 |---|---|
-| `constraints/iam.disableServiceAccountKeyCreation` | Block creation of SA key files org-wide |
+| `constraints/iam.disableServiceAccountKeyCreation` | Block SA key file creation org-wide |
 | `constraints/compute.vmExternalIpAccess` | Restrict which VMs can have external IPs |
-| `constraints/compute.restrictLoadBalancerCreationForTypes` | Limit which LB types can be created |
-| `constraints/gcp.resourceLocations` | Restrict where resources can be created, common data-residency answer |
-| `constraints/compute.requireOsLogin` | Enforce OS Login instead of metadata-based SSH keys |
-| `constraints/sql.restrictPublicIp` | Block Cloud SQL instances from having public IPs |
+| `constraints/compute.restrictLoadBalancerCreationForTypes` | Limit LB types allowed |
+| `constraints/gcp.resourceLocations` | Restrict resource locations — the KnightMotives data-residency answer |
+| `constraints/compute.requireOsLogin` | Enforce OS Login over metadata SSH keys |
+| `constraints/sql.restrictPublicIp` | Block Cloud SQL public IPs |
 
-Org Policy answers the "how do we enforce this regardless of who has IAM permissions" question. IAM answers "who can do what." If a scenario says "even project owners should not be able to do X," that is always an Org Policy answer, never an IAM answer, since IAM Owner would otherwise be able to override it.
+If a scenario says "even project owners should not be able to do X," that's always Org Policy, never IAM.
 
 ### Service account best practices, ranked
-1. Workload Identity Federation (GKE, or external identity providers like AWS/Azure/on-prem AD) — no keys at all
-2. Impersonation (short-lived tokens via `iam.serviceAccounts.getAccessToken`) — no long-lived keys
-3. Attached service accounts on Compute Engine (VM's identity, metadata server issues short-lived tokens automatically) — no keys
-4. Downloaded JSON key files — last resort, avoid in production, this is almost always the wrong exam answer when a better option is listed
+1. Workload Identity Federation (GKE or external IdPs) — no keys at all
+2. Impersonation (short-lived tokens) — no long-lived keys
+3. Attached service accounts on Compute Engine — no keys
+4. Downloaded JSON key files — last resort, almost always the wrong exam answer when a better option is listed
+
+### IAM Deny policies, PAM, and Principal Access Boundary — deep dive
+
+Standard IAM is **additive-only by design**: if any binding anywhere in the hierarchy grants a permission, the principal has it, and there's no native "except for this person" clause on an allow policy. Three newer mechanisms close that gap without resorting to Org Policy (which is coarse — it turns a whole capability off/on for a resource, not for specific principals):
+
+- **IAM Deny policies**: explicitly forbid named principals (or even `allUsers`) from using specific permissions, regardless of what any allow policy grants. Deny policies are attached at org/folder/project level, are inherited down the hierarchy exactly like allow policies, and **always win** over an allow grant when both apply. You can carve out exceptions for specific principals within an otherwise-broad deny rule (e.g., deny "modify org policy" org-wide, except for the two named platform-admin accounts). This is the answer for "deny this one dangerous permission to almost everyone, with a couple of narrow named exceptions" — a shape Org Policy can't express since Org Policy has no concept of "except this specific user."
+- **Privileged Access Manager (PAM)**: just-in-time, time-bound privilege elevation. You define an **entitlement** (who's eligible, what access, max duration, optional approval workflow), and a principal requests a **grant** that's automatically revoked after the window expires. This is the modern answer to "how do we avoid standing access to production for on-call engineers" — replacing the old pattern of a permanently-provisioned break-glass service account. PAM grants can also be scoped as exceptions to Deny policies and VPC-SC perimeters for the duration of the grant only.
+- **Principal Access Boundary (PAB)**: a hard ceiling on *which resources* a principal can ever access, independent of what roles they're granted — e.g., preventing a principal from ever touching resources outside your organization at all, which blocks a whole class of phishing/exfiltration attacks even if a role binding mistake would otherwise allow it.
+
+**How the three security layers now stack (updated exfiltration/least-privilege model):**
+| Mechanism | Answers |
+|---|---|
+| IAM allow policy | "What can this identity normally do" |
+| IAM Deny policy | "What must this identity never do, no matter what it's granted" |
+| Org Policy | "What must never be possible on this resource, for anyone, including Owners" |
+| Principal Access Boundary | "What resources can this identity ever reach, period" |
+| Privileged Access Manager | "How do we grant #1 only temporarily, with audit trail, instead of permanently" |
+| VPC Service Controls | "Where can authorized data movement land" |
+
+**Agent-specific governance (new, tracks the AI content expansion):** IAM Allow/Deny policies and Principal Access Boundary now extend explicitly to **Agent Identity** — a distinct principal type for autonomous AI agents, separate from human users and service accounts. This matters for any scenario involving Gemini Enterprise Agent Platform agents that need scoped, auditable, revocable access to tools/APIs/data rather than inheriting a broad service account's full permission set.
+
+**Custom Organization Policy** now covers 130+ Google Cloud services, letting you write org policy constraints beyond the built-in list for products that didn't previously have one — worth knowing exists as the escape hatch when a scenario needs an org-wide restriction on a service with no predefined constraint.
 
 ### VPC Service Controls vs Firewall vs IAM (the exfiltration triangle)
-- **IAM** stops unauthorized *identities* from accessing a resource
-- **Firewall rules** stop unauthorized *network paths* from reaching a resource
-- **VPC Service Controls** stops *authorized* identities/services from moving data to an *unauthorized perimeter* (e.g., a compromised or misconfigured service account copying BigQuery data to a personal project)
-The exam likes to test that these are complementary, not substitutes. A question describing an insider threat or credential-compromise data exfiltration scenario wants VPC-SC specifically, since IAM/firewall alone don't stop an authorized identity from moving data across projects.
+- **IAM** stops unauthorized *identities*
+- **Firewall rules** stop unauthorized *network paths*
+- **VPC Service Controls** stops *authorized* identities/services from moving data to an *unauthorized perimeter* — the answer for insider-threat/credential-compromise exfiltration scenarios, including new AI-specific variants (e.g., an agent or pipeline copying training data out of a HIPAA perimeter)
+
+### Securing AI (new, v6.1 section 3.1)
+- **Model Armor**: guardrails on prompts/responses (jailbreak/injection detection, content policy enforcement)
+- **Sensitive Data Protection**: detect/redact/tokenize PII/PHI/PCI before it reaches a model or gets logged
+- **Secure model deployment**: least-privilege service accounts for model endpoints, VPC-SC around model/data resources, signed model artifacts
 
 ### Compliance quick reference
 | Regime | Key GCP mechanisms |
 |---|---|
-| HIPAA | BAA with Google, HIPAA-eligible services list, CMEK, audit logging, VPC-SC |
-| PCI DSS | Network segmentation (separate VPC/project for cardholder data), restricted service perimeter, logging |
-| GDPR | Data residency (`resourceLocations` org policy), right to erasure processes, DPA with Google |
+| HIPAA | BAA with Google, HIPAA-eligible services list, CMEK, audit logging, VPC-SC — EHR Healthcare's whole case |
+| PCI DSS | Segmented VPC/project for cardholder data, restricted perimeter, logging — relevant to Cymbal Retail's payment data |
+| GDPR | Data residency (`resourceLocations`), right to erasure, DPA with Google |
+| SOC 2 | Now explicitly named in the guide as an "industry certification" consideration under compliance |
 | FedRAMP | Assured Workloads, restricted regions, personnel controls |
 
 ---
 
-## 7. Data & Analytics, In Depth
+## 10. Data & Analytics, In Depth
 
 ### Pub/Sub specifics
-- At-least-once delivery by default, exactly-once delivery is available but adds latency/throughput cost, only enable it when duplicate processing is genuinely unacceptable and the consumer can't dedupe itself
-- Push vs pull subscriptions: push for low-latency delivery to an HTTP endpoint (e.g., Cloud Run/Functions), pull when the consumer wants to control its own read rate (e.g., Dataflow)
-- Dead-letter topics: capture messages that fail repeated delivery attempts instead of blocking the subscription
-- Ordering keys: guarantee order within a key while still parallelizing across keys, use when a scenario needs ordering guarantees per-entity but not globally
+- At-least-once by default; exactly-once adds latency/throughput cost, only enable when duplicates are genuinely unacceptable
+- Push vs pull: push for low-latency HTTP endpoint delivery (Cloud Run/functions), pull when the consumer controls its own read rate (Dataflow)
+- Dead-letter topics for repeatedly-failing messages
+- Ordering keys: order within a key, parallel across keys
+- **Batching vs. latency tradeoff**: publisher client batching improves throughput but adds latency waiting for a batch to fill/timeout — reducing/disabling batch settings is the answer whenever a scenario explicitly wants *lower publishing latency* (this exact tradeoff appears as a documented sample question under the current EHR Healthcare case)
 
-### Dataflow specifics
-- Apache Beam under the hood, so pipelines are portable across GCP/other runners in theory, exam sometimes frames this as the "avoid lock-in" answer for data pipelines
-- Autoscaling workers based on backlog, no manual cluster sizing the way Dataproc requires
-- Templates (classic and Flex) let non-engineers launch pre-built pipelines with parameters, this is the answer for "let analysts run ETL jobs without writing code"
-
-### Dataproc vs Dataflow
+### Dataflow / Dataproc
 | | Dataproc | Dataflow |
 |---|---|---|
 | Underlying tech | Managed Hadoop/Spark | Managed Apache Beam |
-| Best fit | Lift-and-shift existing Spark/Hadoop jobs | New pipelines, unified batch+streaming model |
-| Cluster management | You size/manage clusters (or use autoscaling policies) | Fully serverless, no cluster sizing |
-| Exam signal | "We already have Spark jobs, migrate with minimal rewrite" | "We're building something new" or "need both batch and streaming in one model" |
+| Best fit | Lift-and-shift existing Spark/Hadoop jobs | New pipelines, unified batch+streaming |
+| Cluster management | You size/manage (or autoscaling policies) | Fully serverless |
+| Exam signal | "We already have Spark jobs, minimal rewrite" | "Building something new" / "batch and streaming in one model" |
+
+### Datastream + Dataflow (Cymbal Retail's signature pattern)
+Continuous CDC replication from siloed on-prem/legacy databases into BigQuery to build a unified analytics view — the correct answer over manual nightly file dumps or federated queries when the requirement is an ongoing consolidated warehouse.
 
 ### Composer (managed Airflow)
-Use when a scenario needs DAG-based orchestration across multiple GCP services and possibly external systems, distinct from Dataflow/Dataproc which run the actual processing, Composer just orchestrates the sequence and dependencies between jobs.
+DAG-based orchestration across multiple GCP services/external systems; orchestrates sequence and dependencies, doesn't do the processing itself.
 
 ---
 
-## 8. Reliability, DR, and SRE, In Depth
+## 11. Reliability, DR, and Operational Excellence
 
-### DR pattern selection with concrete GCP services
+### DR pattern selection
 | Pattern | RTO | RPO | GCP implementation |
 |---|---|---|---|
-| Backup and restore | Hours to days | Hours | Scheduled snapshots/backups to Cloud Storage, restore on demand |
-| Pilot light | Tens of minutes to hours | Minutes | Minimal always-on core (e.g., a small Cloud SQL replica), scale up on failover |
-| Warm standby | Minutes | Seconds to minutes | Scaled-down but running full stack in a second region, promote on failover |
-| Multi-site active-active | Near zero | Near zero | Global LB + multi-region Spanner/multi-region GKE, both regions serving live traffic |
+| Backup and restore | Hours to days | Hours | Scheduled snapshots/backups to Cloud Storage |
+| Pilot light | Tens of minutes to hours | Minutes | Minimal always-on core, scale up on failover |
+| Warm standby | Minutes | Seconds to minutes | Scaled-down full stack in a second region |
+| Multi-site active-active | Near zero | Near zero | Global LB + multi-region Spanner/multi-region GKE |
 
-### SRE math worth having memorized
-- Error budget = 1 - SLO. A 99.9% SLO gives roughly 43 minutes of allowed downtime per month.
-- If burn rate exceeds budget pace, the standard SRE response is to freeze feature releases and prioritize reliability work, this is a common "what should the team do" scenario answer.
-- SLA is a subset/looser version of SLO with financial or contractual consequences attached, never the other way around, an SLA tighter than your internal SLO would be an unforced error.
+### SRE math
+- Error budget = 1 - SLO. A 99.9% SLO ≈ 43 minutes allowed downtime/month.
+- Burn rate exceeding budget pace → freeze feature releases, prioritize reliability work
+- SLA is a looser version of SLO with contractual consequences, never tighter than the internal SLO
 
 ### Monitoring and observability stack
-- **Cloud Monitoring**: metrics, dashboards, alerting policies, uptime checks
-- **Cloud Logging**: centralized logs, log-based metrics (turn a log pattern into a metric you can alert on), log sinks (route logs to BigQuery/Cloud Storage/Pub/Sub for retention or analysis)
-- **Cloud Trace**: distributed tracing, latency breakdown across service calls
-- **Cloud Profiler**: continuous CPU/memory profiling in production
-- **Error Reporting**: aggregates and groups application errors automatically
-This maps directly onto the OpenTelemetry centralized observability work you've already done across your Kubernetes clusters, same layered model: metrics/logs/traces, just GCP-native tooling instead of an OTel collector pipeline.
+- **Cloud Monitoring**: metrics, dashboards, alerting, uptime checks
+- **Cloud Logging**: centralized logs, log-based metrics, log sinks
+- **Cloud Trace**: distributed tracing
+- **Cloud Profiler**: continuous production CPU/memory profiling
+- **Error Reporting**: aggregates/groups application errors automatically
+
+### Domain 6 specifics (operational excellence, now its own explicit pillar-mapped section)
+- Deployment/release management
+- Supporting deployed solutions in production
+- Quality control evaluation
+- **Reliability validation**: chaos engineering, penetration testing, load testing are now named explicitly as tested topics, not just implied SRE practice
 
 ### Incident management
-Google's SRE model (the actual book this exam draws from) emphasizes blameless postmortems, clear incident commander roles during an outage, and treating toil reduction as an engineering priority, not just an ops afterthought. Expect at least one question framed around "how should the team respond after an outage" where the correct answer is blameless postmortem plus concrete follow-up actions, not disciplinary action against an individual.
+Blameless postmortems, clear incident commander roles, toil reduction as an engineering priority — "how should the team respond after an outage" questions want blameless postmortem plus concrete follow-up, not disciplinary action.
 
 ---
 
-## 9. Cost Optimization, In Depth
+## 12. Cost Optimization
 
 | Lever | Mechanism | When it's the right answer |
 |---|---|---|
-| Committed Use Discounts | 1 or 3 year commit on vCPU/memory or spend-based | Stable, predictable baseline load |
-| Sustained Use Discounts | Automatic, no commitment | Already happens on Compute Engine, not something you configure |
-| Spot VMs | Up to ~60-91% off, can be preempted | Fault-tolerant batch, stateless workers, CI runners |
-| Rightsizing recommendations | Recommender API suggests machine type changes | Ongoing hygiene, "we're overprovisioned" scenarios |
-| BigQuery slot reservations/editions | Flat-rate capacity instead of per-query | High, predictable query volume |
-| Storage Autoclass/lifecycle | Automatic or rule-based tiering | Unpredictable or well-known access decay patterns respectively |
-| Egress minimization | Keep traffic within a region/zone, use Cloud CDN, Private Google Access | Any architecture with heavy inter-service or internet-facing traffic |
+| Committed Use Discounts | 1/3-year commit on vCPU/memory or spend | Stable, predictable baseline load |
+| Sustained Use Discounts | Automatic, no commitment | Already happens on Compute Engine |
+| Spot VMs | Up to ~60–91% off, preemptible | Fault-tolerant batch, stateless workers, CI runners |
+| Rightsizing recommendations | Recommender API | Ongoing hygiene, "we're overprovisioned" |
+| BigQuery slot reservations/editions | Flat-rate capacity | High, predictable query volume |
+| Storage Autoclass/lifecycle | Automatic/rule-based tiering | Unpredictable or well-known access decay |
+| Egress minimization | Region/zone locality, CDN, Private Google Access | Any heavy inter-service/internet-facing traffic |
 
-**Billing tools**: Budgets and alerts (proactive notification), Billing export to BigQuery (detailed cost analysis), Cost Table/Reports in console (quick visual breakdown). A scenario asking "how do we get notified before we blow the budget" wants Budgets and Alerts, not a dashboard someone has to check manually.
+**Billing tools**: Budgets and alerts (proactive), Billing export to BigQuery (detailed analysis), Cost Table/Reports (quick breakdown). "How do we get notified before we blow the budget" → Budgets and Alerts.
 
 ---
 
-## 10. Migration Strategy, In Depth
+## 13. Migration Strategy
 
-### The 4 Rs, applied
+### The 4 Rs
 | Strategy | Description | Signal in a question |
 |---|---|---|
-| Rehost (lift and shift) | Move VMs as-is | "minimize changes," "fastest path," tight deadline |
-| Replatform (improve and move) | Swap a component for a managed equivalent during the move | "modernize the database but keep the app mostly as-is" |
-| Refactor/rearchitect (rebuild) | Redesign for cloud-native | "long-term scalability," greenfield, no urgency constraint |
-| Repurchase | Replace with SaaS | Rare on this exam, occasionally for things like email/collab tools |
+| Rehost (lift and shift) | Move VMs as-is | "minimize changes," "fastest path" |
+| Replatform | Swap a component for a managed equivalent during the move | "modernize the database but keep the app mostly as-is" |
+| Refactor/rearchitect | Redesign cloud-native | "long-term scalability," greenfield, no urgency constraint |
+| Repurchase | Replace with SaaS | Rare on this exam |
 
-### Migration tooling
-- **Migrate to Virtual Machines**: for VM lift-and-shift from on-prem/other clouds into Compute Engine
-- **Database Migration Service (DMS)**: homogeneous migrations (MySQL→Cloud SQL MySQL, Postgres→Cloud SQL/AlloyDB Postgres), minimal downtime via CDC
-- **Datastream**: change data capture streaming into BigQuery/Cloud Storage/Bigtable, use when the target is analytics rather than an operational replica
-- **Storage Transfer Service**: bulk data movement between on-prem/other clouds and Cloud Storage, scheduled/repeating transfers
-- **Transfer Appliance**: physical device for large one-time transfers where bandwidth makes online transfer impractical, this is the answer whenever a case study mentions petabyte-scale data and limited/unreliable bandwidth (TerramEarth, HRL archival footage)
+### Migration tooling (note: **Migration Center** now explicitly named in the guide as the assessment tool)
+- **Migration Center**: assessment/discovery for planning a migration at the portfolio level — the new explicit answer for "how do we assess what to migrate and estimate cost/effort"
+- **Migrate to Virtual Machines**: VM lift-and-shift into Compute Engine
+- **Database Migration Service (DMS)**: homogeneous migrations, minimal downtime via CDC
+- **Datastream**: CDC streaming into BigQuery/Cloud Storage/Bigtable when the target is analytics
+- **Storage Transfer Service**: bulk/scheduled data movement between on-prem/other clouds and Cloud Storage
+- **Transfer Appliance**: physical device for large one-time transfers when bandwidth makes online transfer impractical
 
 ---
 
-## 11. AWS-to-GCP Concept Mapping (since your daily reasoning is AWS-first)
+## 14. AWS-to-GCP Concept Mapping (updated with AI services)
 
 | AWS | GCP | Notes |
 |---|---|---|
-| IAM Role + OIDC (IRSA) / EKS Pod Identity | Workload Identity Federation / Workload Identity (GKE) | Same goal: short-lived, scoped credentials for workloads, no static keys |
-| VPC | VPC | GCP VPCs are global, subnets regional; AWS VPCs are regional, subnets are zonal, this trips people up in both directions |
-| Security Groups | Firewall Rules (targeted by tag/service account) | GCP firewall rules are distributed/stateful at hypervisor level, not attached to an ENI construct |
-| Transit Gateway | Network Connectivity Center (NCC) | You've already compared these directly in recent work |
-| Direct Connect | Dedicated/Partner Interconnect | Similar tiering (colocation vs. partner-provided) |
-| ALB/NLB | External Application LB / External passthrough Network LB | GCP splits by L7 vs L4 similarly |
-| Route 53 routing policies | Cloud DNS routing policies | Geolocation/weighted/failover exist on both |
-| S3 storage classes | Cloud Storage classes | Standard/Nearline/Coldline/Archive roughly mirrors Standard/IA/Glacier/Deep Archive |
+| IAM Role + OIDC (IRSA) / EKS Pod Identity | Workload Identity Federation / Workload Identity (GKE) | Same goal: short-lived, scoped credentials |
+| VPC | VPC | GCP VPCs global, subnets regional; AWS VPCs regional, subnets zonal |
+| Security Groups | Firewall Rules (+ Hierarchical Firewall Policies) | Distributed/stateful at hypervisor level; hierarchical policies are the new org/folder-level equivalent of layered SCP-style network controls |
+| Transit Gateway | Network Connectivity Center (NCC) | — |
+| Direct Connect | Dedicated/Partner Interconnect | Colocation vs. partner-provided tiers |
+| ALB/NLB | External Application LB / External passthrough Network LB | Split by L7 vs L4 similarly |
+| S3 storage classes | Cloud Storage classes | Standard/Nearline/Coldline/Archive |
 | RDS | Cloud SQL | Similar managed relational model |
-| Aurora | AlloyDB | Both pitched as faster, more scalable variants of open-source engines |
-| DynamoDB | Firestore (docs) / Bigtable (wide-column, high throughput) | DynamoDB spans both use cases that GCP splits into two services |
-| Redshift | BigQuery | BigQuery is more serverless by default, Redshift needs more cluster sizing decisions unless using Serverless |
-| Kinesis | Pub/Sub + Dataflow | Kinesis Data Streams ~ Pub/Sub, Kinesis Data Analytics ~ Dataflow |
+| Aurora | AlloyDB | Both pitched as faster, more scalable open-source-engine variants |
+| DynamoDB | Firestore (docs) / Bigtable (wide-column) | DynamoDB spans both use cases GCP splits into two services |
+| Redshift | BigQuery | BigQuery more serverless by default |
+| Kinesis | Pub/Sub + Dataflow | Data Streams ~ Pub/Sub, Data Analytics ~ Dataflow |
 | KMS | Cloud KMS | Conceptually near-identical |
 | Secrets Manager | Secret Manager | Conceptually near-identical |
-| Organizations + SCPs | Resource Manager (Org/Folder/Project) + Org Policy | SCPs ~ Org Policy constraints |
-| CloudTrail | Cloud Audit Logs (Admin Activity + Data Access) | Admin Activity is always-on like CloudTrail management events |
-| CloudWatch | Cloud Monitoring + Cloud Logging | Split into two products where AWS keeps one |
-| Terraform (already your daily tool) | Same, plus Deployment Manager/Config Connector as GCP-native alternatives | Exam accepts Terraform as a valid IaC answer |
+| Organizations + SCPs | Resource Manager (Org/Folder/Project) + Org Policy | — |
+| CloudTrail | Cloud Audit Logs (Admin Activity + Data Access) | — |
+| CloudWatch | Cloud Monitoring + Cloud Logging | Split into two products |
+| Bedrock (model access) | Model Garden + Vertex AI | Foundation model catalog + deploy/fine-tune tooling |
+| Bedrock Agents | Gemini Enterprise Agent Platform / Agent Builder | Agent orchestration layer |
+| SageMaker training infra | AI Hypercomputer | Integrated GPU/TPU training/serving stack |
+| Macie | Sensitive Data Protection | PII/PHI/PCI detection and redaction |
+| Bedrock Guardrails | Model Armor | Prompt/response safety screening |
+| Terraform (already your daily tool) | Same, plus Deployment Manager/Config Connector | Exam accepts Terraform as a valid IaC answer, now explicitly named |
 
 ---
 
-## 12. Newer/Less Obvious GCP Features Explained
+## 15. Scenario Walkthroughs (updated to current case studies)
 
-A few services got name-dropped earlier without a real explanation. Here's what each one actually is.
+**Scenario A (Altostrat Media):** "A media company wants to automatically extract metadata and flag inappropriate content the moment a file is uploaded, with minimal custom engineering."
+Reasoning: event-driven trigger + standard media-analysis task → **Cloud Storage upload event → Cloud Run function → Video Intelligence API / Vision AI**, not a custom-trained model on GKE. Building your own CV pipeline is the classic over-engineering trap here.
 
-**Network Connectivity Center (NCC)**
-A hub-and-spoke model for connecting multiple networks (VPCs, on-prem sites, other clouds) through a central management layer, instead of you manually wiring up individual VPN tunnels or Interconnect connections between every pair of networks. You attach "spokes" (a VPN tunnel, an Interconnect attachment, a router appliance, another VPC) to the NCC "hub," and NCC handles reachability between spokes. This is the direct GCP equivalent of AWS Transit Gateway: both replace a full-mesh of point-to-point connections with a single hub that everything plugs into. Comes up in exam scenarios shaped like "we have a growing number of on-prem sites and cloud VPCs and don't want to manage N-squared VPN tunnels."
+**Scenario B (Cymbal Retail):** "An online retailer wants personalized product recommendations added to its site with minimal development effort."
+Reasoning: "minimal development effort" + personalization → **Vertex AI Search & Conversation / Recommendations AI (managed retail API)**, not a custom GKE-hosted model or a nightly BigQuery ML batch job that isn't truly real-time.
 
-**Cross-Cloud Interconnect**
-A dedicated physical network connection directly from Google's network into another cloud provider's network (AWS, Azure), skipping the public internet entirely. Use when a scenario describes a genuinely multi-cloud architecture (e.g., data lives in GCP but an app tier runs in AWS, or vice versa) and needs private, high-bandwidth, low-latency connectivity between the two clouds rather than routing through internet-facing endpoints on both sides.
+**Scenario C (KnightMotives Automotive):** "An automotive company must ingest millions of telemetry points per minute, support real-time lookups by vehicle, and also run historical analysis, while respecting regional data-residency law."
+Reasoning: high-throughput time-series + dual access pattern → **Bigtable (keyed by vehicle ID + timestamp) for real-time lookups, streamed/exported into BigQuery for analytics**; enforce data residency via `constraints/gcp.resourceLocations` and regional resource placement, not a single global-region design.
 
-**Private Service Connect (PSC)**
-Lets a VPC privately consume a service (a Google API, or another team's/another org's published service) without VPC Peering and without exposing either network fully to the other. You create a PSC endpoint inside your VPC that acts as a private IP address for the remote service. Two flavors: PSC for Google APIs (private access to things like Cloud Storage/BigQuery without a public IP path) and PSC for published services (a producer publishes a service, consumers privately attach to it, e.g., a SaaS vendor exposing their product to multiple customer VPCs without peering with each one). This solves the specific gap where Peering is non-transitive and a many-to-one service relationship would otherwise require peering with every consumer individually.
+**Scenario D (EHR Healthcare):** "A healthcare company must ensure that even if a data analyst's credentials are compromised, exported patient data cannot be copied to a project outside the security team's control."
+Reasoning: authorized identity, unauthorized destination → not an IAM problem → **VPC Service Controls** perimeter around the BigQuery/GCS resources holding PHI.
 
-**Assured Workloads**
-A compliance wrapper that enforces a whole bundle of controls at once (region restrictions, personnel access controls, specific encryption requirements) to meet a named regulatory regime (FedRAMP, IL4/IL5, EU data boundary, etc.), rather than you assembling org policies and CMEK and access controls manually one by one. It's essentially a pre-packaged, auditable configuration for regulated workloads. Shows up when a scenario names a specific government/regulatory compliance program rather than generic "compliance" language.
+**Scenario E (cross-cutting, any case):** "A company wants to prevent any employee, including project owners, from ever creating a Cloud SQL instance with a public IP, org-wide."
+Reasoning: "including project owners" is the tell → **Org Policy constraint `constraints/sql.restrictPublicIp`** at the organization node, since IAM Owner would otherwise override an IAM-only restriction.
 
-**AlloyDB**
-A PostgreSQL-compatible database service, but re-engineered by Google for performance, separating compute and storage the way BigQuery does, and adding a built-in columnar engine so analytical queries against transactional data run fast without a separate warehouse. Positioned as "if you're on Postgres today and performance is the pain point, move here without changing your app or drivers." Distinct from Cloud SQL for Postgres, which is stock/vanilla PostgreSQL just managed by Google, no re-engineered storage or analytical engine underneath.
-
-**Hyperdisk**
-The newer generation of block storage after Persistent Disk. The key difference: with regular PD, IOPS and throughput scale automatically with disk size, so to get more performance you had to buy more capacity even if you didn't need the space. Hyperdisk decouples these, you provision capacity, IOPS, and throughput independently, and can adjust them live without downtime. Matters for a scenario where a workload needs high IOPS on a small volume, which older PD types can't do efficiently.
-
-**BigQuery editions (Standard/Enterprise/Enterprise Plus)**
-Replaced the older flat-rate slot commitment model as the primary packaging. Instead of a single flat-rate price, you pick an edition tier that determines which features you get (workload management controls, multi-region support tiers, etc.) and then buy compute capacity within that edition, either on-demand, or committed for 1 year/3 years at a discount. The exam-relevant point: this is still the "predictable high query volume" answer versus on-demand per-bytes-scanned pricing, editions are just the current packaging of that same idea.
-
-**GKE Autopilot**
-Already covered briefly, worth restating plainly since it's newer than Standard GKE: you deploy workloads and Google fully manages the underlying nodes, right-sizing, and security patching, you're billed per pod resource request rather than per underlying VM. Standard GKE still exists for cases needing node-level access (custom daemonsets, specific node OS configs, GPU/TPU scheduling flexibility beyond what Autopilot exposes).
-
-**Workload Identity Federation**
-Distinct from plain "Workload Identity" (the GKE-specific version binding a Kubernetes service account to a Google service account). Workload Identity Federation is the broader mechanism letting any external identity provider — AWS IAM, Azure AD, a GitHub Actions OIDC token, an on-prem identity provider — exchange its own token for short-lived GCP credentials, with no service account key ever created or downloaded. This is what lets a GitHub Actions pipeline or an AWS Lambda function authenticate to GCP directly, without a JSON key sitting in a secrets store somewhere.
-
-**Config Connector**
-A GKE add-on that lets you manage GCP resources (a Cloud SQL instance, a Pub/Sub topic, a Storage bucket) as Kubernetes custom resources, applied with `kubectl apply` the same way you'd deploy a Deployment or Service. The pitch is a single GitOps workflow that provisions both your app manifests and the cloud infrastructure underneath them, rather than splitting infra into a separate Terraform pipeline. Given your existing FluxCD GitOps setup, this is conceptually the closest GCP-native equivalent to "reconcile infrastructure state the same way you reconcile app state," though most real-world teams doing serious multi-cloud/multi-account work, including your own, still reach for Terraform/Terragrunt instead.
-
-**Recommender API**
-The engine behind the rightsizing/cost/security suggestions you see in the console (e.g., "this VM is oversized," "this firewall rule is unused," "this IAM binding is overly permissive"). It's not a single product so much as a set of recommenders per resource type, surfaced both in the UI and queryable via API for programmatic cleanup at scale. Exam-relevant as the answer to "how do we get ongoing rightsizing suggestions without manually auditing usage."
+**Scenario F (new AI-security pattern):** "A retailer's new conversational shopping agent must be prevented from leaking system prompts or being manipulated into recommending competitor products via crafted user input."
+Reasoning: this is a prompt-injection/model-safety concern, not a data-access concern → **Model Armor** screening on the agent's inputs/outputs, potentially paired with **Sensitive Data Protection** if customer PII could also leak through responses.
 
 ---
 
-## 13. Scenario Walkthroughs (worked examples)
+## 16. High-Yield Gotchas (updated)
 
-**Scenario A:** "A retailer needs a database that supports strong consistency for inventory counts across three regions, with no planned downtime for schema changes, and query volume will scale from 1K to 500K QPS over the next year."
-Reasoning: strong consistency + multi-region + massive horizontal scale → eliminate Cloud SQL (vertical, single-region-focused) and Bigtable (eventually consistent by default) → **Cloud Spanner** is the answer, cost is implicitly accepted since the requirements explicitly demand what only Spanner provides.
-
-**Scenario B:** "A company wants to prevent any employee, including project owners, from ever creating a Cloud SQL instance with a public IP address, org-wide."
-Reasoning: "including project owners" is the tell, IAM roles can't be restricted below what Owner grants without an override mechanism → **Org Policy constraint `constraints/sql.restrictPublicIp`** set at the organization node.
-
-**Scenario C:** "An analytics team runs the same three dashboard queries against a 50TB BigQuery table hundreds of times per day, and query cost has become the largest line item on the bill."
-Reasoning: repeated identical aggregation queries at high frequency → **materialized views** to avoid recomputation, plus check whether **partitioning/clustering** on the underlying table would further cut bytes scanned, consider **BI Engine** if the actual complaint is dashboard latency rather than billing cost.
-
-**Scenario D:** "A healthcare company must ensure that even if a data analyst's credentials are compromised, exported patient data cannot be copied to a project outside the security team's control."
-Reasoning: authorized identity, unauthorized destination → this is not an IAM problem (the identity is legitimately authorized) → **VPC Service Controls** perimeter around the BigQuery/GCS resources holding PHI.
-
-**Scenario E:** "A gaming company's matchmaking service needs to preserve the original client IP address for logging and anti-cheat purposes, and traffic is a custom UDP-based protocol, not HTTP."
-Reasoning: non-HTTP + need original client IP → eliminate HTTP(S) LBs and proxy-based LBs (which don't preserve original IP by default) → **External passthrough Network Load Balancer**.
-
----
-
-## 14. High-Yield Gotchas (expanded)
-
-- Shared VPC vs VPC Peering: Shared VPC centralizes governance within one org; Peering connects independent VPCs (including cross-org), non-transitive, no overlapping CIDRs allowed.
+- The case studies changed — don't waste exam-day recall effort on Mountkirk Games/TerramEarth/HRL details; know Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive instead.
+- More AI content in the guide ≠ AI is more often the correct answer. Plenty of questions (confirmed by Google's own sample material) are pure fundamentals — e.g., a Pub/Sub batching/latency tradeoff — dressed up in an AI-company case study.
+- Shared VPC vs VPC Peering: Shared VPC centralizes governance within one org; Peering connects independent VPCs, non-transitive, no overlapping CIDRs.
 - Regional Persistent Disk gives cross-zone HA, not a substitute for snapshots/backups.
-- Cloud NAT is outbound only, never the fix for an inbound connectivity requirement.
+- Cloud NAT is outbound only, never the fix for inbound connectivity.
 - "Prevent data exfiltration by an authorized identity" → VPC Service Controls, not IAM or firewall rules.
 - Basic roles (Owner/Editor/Viewer) are a red flag in any security-focused answer choice.
-- IAM is additive-only; restricting behavior below what a broader grant allows is an Org Policy job, not an IAM job.
-- BigQuery cost problems are fixed by partitioning/clustering/materialized views/editions pricing, never by "add more compute."
-- Cloud Spanner is a cost/complexity trap when the scenario is actually single-region relational, Cloud SQL or AlloyDB is usually correct there.
+- IAM is additive-only; restricting behavior below what a broader grant allows is an Org Policy job.
+- BigQuery cost problems are fixed by partitioning/clustering/materialized views/editions pricing, never "add more compute."
+- Cloud Spanner is a cost/complexity trap when the scenario is actually single-region relational — Cloud SQL or AlloyDB is usually correct there.
 - Preemptible/Spot VMs are never correct for stateful, latency-sensitive, or user-facing production traffic.
-- Dedicated Interconnect requires colocation, if the scenario doesn't mention colocation facility access, Partner Interconnect is likely the intended answer instead.
-- Workload Identity Federation is the answer whenever a scenario wants an external system (another cloud, on-prem, CI/CD) to authenticate to GCP without a downloaded key file.
-- A "global" GCP resource (VPC, image, snapshot) versus a "regional" one (subnet, Cloud SQL instance, most managed services) is a recurring trick in answer choices, read resource scope carefully.
-- Multi-region Cloud Storage buckets improve availability/durability across geography, they do not automatically make an application multi-region, compute and databases still need their own multi-region design.
+- Dedicated Interconnect requires colocation; if the scenario doesn't mention colocation access, Partner Interconnect is likely intended.
+- Workload Identity Federation is the answer whenever an external system (another cloud, on-prem, CI/CD) needs to authenticate to GCP without a downloaded key file.
+- A "global" resource (VPC, image, snapshot) vs. "regional" (subnet, Cloud SQL instance, most managed services) is a recurring trick — read resource scope carefully.
+- Multi-region Cloud Storage buckets improve availability/durability across geography; they do not automatically make an application multi-region.
+- Model Armor / Sensitive Data Protection are new distractors/answers specifically for AI-pipeline security questions — don't confuse them with VPC-SC (network/data perimeter) or IAM (identity access); they operate at the model input/output layer.
+- Terraform is now explicitly named as an accepted correct IaC answer — you no longer need to default to Deployment Manager reasoning.
+- VPC Peering's non-transitivity is the single most common networking trap: don't assume A can reach C just because A-B and B-C are peered. If a scenario needs transitive reachability across many networks, it wants NCC, not "just add more peerings."
+- Don't confuse **PSC** (privately consuming/exposing one specific service, point-to-point) with **NCC** (broad network-to-network reachability across many spokes). A scenario about "let a partner call our one API privately" wants PSC; a scenario about "unify connectivity across dozens of VPCs and on-prem sites" wants NCC.
+- **IAM Deny policy vs. Org Policy**, disambiguated further: Deny policy targets specific *principals and permissions* with exceptions per-principal; Org Policy targets a *resource capability* for everyone including Owners, with no per-principal exception mechanism. "Deny this to everyone except these two admins" → Deny policy. "Make this impossible for anyone, ever, on this resource" → Org Policy.
+- Privileged Access Manager is the modern answer to "avoid standing/permanent elevated access" — a permanently-provisioned break-glass service account is now the wrong-answer pattern where PAM's time-bound grants fit.
 
 ---
 
-## 15. Quick IaC Note
+## 17. Exam-Day Strategy
 
-The official exam guide still frames native IaC around Deployment Manager and Config Connector, but Terraform via the Google provider is an accepted correct answer in current material. The principles you already apply with Terraform/Terragrunt (declarative state, drift detection, per-environment modularity) transfer directly, GKE's Config Connector is the closest GCP-native equivalent to "manage cloud resources as Kubernetes custom resources," worth knowing exists even if you'd reach for Terraform in practice.
-
----
-
-## 16. Exam-Day Strategy
-
-- Read the question stem fully before looking at answer choices, several questions bury the actual constraint in the second sentence.
-- Eliminate any answer that violates an explicit business constraint (cost, timeline, "minimize changes") before comparing technical merit.
-- When two answers both seem technically valid, the more "boring"/managed option is usually correct, GCP PCA rewards operational simplicity over cleverness.
-- Flag and move on for anything requiring case-study recall you're unsure of, come back after finishing the rest.
-- If a question doesn't name a case study, don't force one, some questions are fully standalone.
+- Read the question stem fully before looking at answer choices — several questions bury the actual constraint in the second sentence.
+- Eliminate any answer that violates an explicit business constraint (cost, timeline, "minimize changes," data residency) before comparing technical merit.
+- When two answers both seem technically valid, the more "boring"/managed option is usually correct — GCP PCA rewards operational simplicity over cleverness, and this now explicitly extends to AI: a managed API beats a custom-trained model whenever both would work.
+- Only 2 of the 4 case studies appear in your sitting — don't panic if one of the four feels unfamiliar going in, but ideally know all four since you won't know in advance which pair you'll get.
+- If a question doesn't name a case study, don't force one — some questions are fully standalone fundamentals.
+- Budget ~1.5 minutes per standalone question; save extra time for case-study questions since you'll be cross-referencing the split-screen scenario text.
 
 ---
