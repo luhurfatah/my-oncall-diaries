@@ -356,7 +356,46 @@ Google's SRE model (the actual book this exam draws from) emphasizes blameless p
 
 ---
 
-## 12. Scenario Walkthroughs (worked examples)
+## 12. Newer/Less Obvious GCP Features Explained
+
+A few services got name-dropped earlier without a real explanation. Here's what each one actually is.
+
+**Network Connectivity Center (NCC)**
+A hub-and-spoke model for connecting multiple networks (VPCs, on-prem sites, other clouds) through a central management layer, instead of you manually wiring up individual VPN tunnels or Interconnect connections between every pair of networks. You attach "spokes" (a VPN tunnel, an Interconnect attachment, a router appliance, another VPC) to the NCC "hub," and NCC handles reachability between spokes. This is the direct GCP equivalent of AWS Transit Gateway: both replace a full-mesh of point-to-point connections with a single hub that everything plugs into. Comes up in exam scenarios shaped like "we have a growing number of on-prem sites and cloud VPCs and don't want to manage N-squared VPN tunnels."
+
+**Cross-Cloud Interconnect**
+A dedicated physical network connection directly from Google's network into another cloud provider's network (AWS, Azure), skipping the public internet entirely. Use when a scenario describes a genuinely multi-cloud architecture (e.g., data lives in GCP but an app tier runs in AWS, or vice versa) and needs private, high-bandwidth, low-latency connectivity between the two clouds rather than routing through internet-facing endpoints on both sides.
+
+**Private Service Connect (PSC)**
+Lets a VPC privately consume a service (a Google API, or another team's/another org's published service) without VPC Peering and without exposing either network fully to the other. You create a PSC endpoint inside your VPC that acts as a private IP address for the remote service. Two flavors: PSC for Google APIs (private access to things like Cloud Storage/BigQuery without a public IP path) and PSC for published services (a producer publishes a service, consumers privately attach to it, e.g., a SaaS vendor exposing their product to multiple customer VPCs without peering with each one). This solves the specific gap where Peering is non-transitive and a many-to-one service relationship would otherwise require peering with every consumer individually.
+
+**Assured Workloads**
+A compliance wrapper that enforces a whole bundle of controls at once (region restrictions, personnel access controls, specific encryption requirements) to meet a named regulatory regime (FedRAMP, IL4/IL5, EU data boundary, etc.), rather than you assembling org policies and CMEK and access controls manually one by one. It's essentially a pre-packaged, auditable configuration for regulated workloads. Shows up when a scenario names a specific government/regulatory compliance program rather than generic "compliance" language.
+
+**AlloyDB**
+A PostgreSQL-compatible database service, but re-engineered by Google for performance, separating compute and storage the way BigQuery does, and adding a built-in columnar engine so analytical queries against transactional data run fast without a separate warehouse. Positioned as "if you're on Postgres today and performance is the pain point, move here without changing your app or drivers." Distinct from Cloud SQL for Postgres, which is stock/vanilla PostgreSQL just managed by Google, no re-engineered storage or analytical engine underneath.
+
+**Hyperdisk**
+The newer generation of block storage after Persistent Disk. The key difference: with regular PD, IOPS and throughput scale automatically with disk size, so to get more performance you had to buy more capacity even if you didn't need the space. Hyperdisk decouples these, you provision capacity, IOPS, and throughput independently, and can adjust them live without downtime. Matters for a scenario where a workload needs high IOPS on a small volume, which older PD types can't do efficiently.
+
+**BigQuery editions (Standard/Enterprise/Enterprise Plus)**
+Replaced the older flat-rate slot commitment model as the primary packaging. Instead of a single flat-rate price, you pick an edition tier that determines which features you get (workload management controls, multi-region support tiers, etc.) and then buy compute capacity within that edition, either on-demand, or committed for 1 year/3 years at a discount. The exam-relevant point: this is still the "predictable high query volume" answer versus on-demand per-bytes-scanned pricing, editions are just the current packaging of that same idea.
+
+**GKE Autopilot**
+Already covered briefly, worth restating plainly since it's newer than Standard GKE: you deploy workloads and Google fully manages the underlying nodes, right-sizing, and security patching, you're billed per pod resource request rather than per underlying VM. Standard GKE still exists for cases needing node-level access (custom daemonsets, specific node OS configs, GPU/TPU scheduling flexibility beyond what Autopilot exposes).
+
+**Workload Identity Federation**
+Distinct from plain "Workload Identity" (the GKE-specific version binding a Kubernetes service account to a Google service account). Workload Identity Federation is the broader mechanism letting any external identity provider — AWS IAM, Azure AD, a GitHub Actions OIDC token, an on-prem identity provider — exchange its own token for short-lived GCP credentials, with no service account key ever created or downloaded. This is what lets a GitHub Actions pipeline or an AWS Lambda function authenticate to GCP directly, without a JSON key sitting in a secrets store somewhere.
+
+**Config Connector**
+A GKE add-on that lets you manage GCP resources (a Cloud SQL instance, a Pub/Sub topic, a Storage bucket) as Kubernetes custom resources, applied with `kubectl apply` the same way you'd deploy a Deployment or Service. The pitch is a single GitOps workflow that provisions both your app manifests and the cloud infrastructure underneath them, rather than splitting infra into a separate Terraform pipeline. Given your existing FluxCD GitOps setup, this is conceptually the closest GCP-native equivalent to "reconcile infrastructure state the same way you reconcile app state," though most real-world teams doing serious multi-cloud/multi-account work, including your own, still reach for Terraform/Terragrunt instead.
+
+**Recommender API**
+The engine behind the rightsizing/cost/security suggestions you see in the console (e.g., "this VM is oversized," "this firewall rule is unused," "this IAM binding is overly permissive"). It's not a single product so much as a set of recommenders per resource type, surfaced both in the UI and queryable via API for programmatic cleanup at scale. Exam-relevant as the answer to "how do we get ongoing rightsizing suggestions without manually auditing usage."
+
+---
+
+## 13. Scenario Walkthroughs (worked examples)
 
 **Scenario A:** "A retailer needs a database that supports strong consistency for inventory counts across three regions, with no planned downtime for schema changes, and query volume will scale from 1K to 500K QPS over the next year."
 Reasoning: strong consistency + multi-region + massive horizontal scale → eliminate Cloud SQL (vertical, single-region-focused) and Bigtable (eventually consistent by default) → **Cloud Spanner** is the answer, cost is implicitly accepted since the requirements explicitly demand what only Spanner provides.
@@ -375,7 +414,7 @@ Reasoning: non-HTTP + need original client IP → eliminate HTTP(S) LBs and prox
 
 ---
 
-## 13. High-Yield Gotchas (expanded)
+## 14. High-Yield Gotchas (expanded)
 
 - Shared VPC vs VPC Peering: Shared VPC centralizes governance within one org; Peering connects independent VPCs (including cross-org), non-transitive, no overlapping CIDRs allowed.
 - Regional Persistent Disk gives cross-zone HA, not a substitute for snapshots/backups.
@@ -393,13 +432,13 @@ Reasoning: non-HTTP + need original client IP → eliminate HTTP(S) LBs and prox
 
 ---
 
-## 14. Quick IaC Note
+## 15. Quick IaC Note
 
 The official exam guide still frames native IaC around Deployment Manager and Config Connector, but Terraform via the Google provider is an accepted correct answer in current material. The principles you already apply with Terraform/Terragrunt (declarative state, drift detection, per-environment modularity) transfer directly, GKE's Config Connector is the closest GCP-native equivalent to "manage cloud resources as Kubernetes custom resources," worth knowing exists even if you'd reach for Terraform in practice.
 
 ---
 
-## 15. Exam-Day Strategy
+## 16. Exam-Day Strategy
 
 - Read the question stem fully before looking at answer choices, several questions bury the actual constraint in the second sentence.
 - Eliminate any answer that violates an explicit business constraint (cost, timeline, "minimize changes") before comparing technical merit.
@@ -408,5 +447,3 @@ The official exam guide still frames native IaC around Deployment Manager and Co
 - If a question doesn't name a case study, don't force one, some questions are fully standalone.
 
 ---
-
-*If you want, I can turn the case studies and scenario walkthroughs into a spaced-repetition flashcard set, or build an interactive quiz artifact to drill the decision tables.*
